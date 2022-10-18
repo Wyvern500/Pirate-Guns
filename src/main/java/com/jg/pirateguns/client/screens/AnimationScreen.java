@@ -6,14 +6,18 @@ import java.util.Objects;
 
 import com.jg.pirateguns.animations.parts.GunModel;
 import com.jg.pirateguns.animations.parts.GunModelPart;
+import com.jg.pirateguns.client.handlers.ClientHandler;
+import com.jg.pirateguns.client.rendering.RenderHelper;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.logging.LogUtils;
+import com.mojang.math.Matrix4f;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
@@ -27,6 +31,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
@@ -34,18 +39,30 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class AnimationScreen extends Screen {
 
+	private static ResourceLocation WIDGETS = new ResourceLocation("textures/gui/widgets.png");
+	
 	private final List<Button> buttons;
 	private final List<EditBox> edits;
 	private final List<OptionsList> options;
 	private AnimationSelectionList list;
 	private final GunModel model;
 
+	private int i;
+	private int j;
+	
+	private boolean start;
+	private float prog;
+	private float prev;
+	private float MAX = 4f;
+	
 	public AnimationScreen(GunModel model) {
 		super(new TranslatableComponent("Animation Screen"));
 		this.buttons = new ArrayList<>();
 		this.edits = new ArrayList<>();
 		this.options = new ArrayList<>();
 		this.model = model;
+		i = width/2;
+		j = height/2;
 	}
 
 	@Override
@@ -133,6 +150,11 @@ public class AnimationScreen extends Screen {
 			}
 		});
 
+		//Buttons
+		buttons.add(new AButton(100, 49, 20, 20, (b) -> {
+			start = true;
+		}));
+		
 		// Initializing widgets
 		for (Button b : buttons) {
 			addRenderableWidget(b);
@@ -151,7 +173,11 @@ public class AnimationScreen extends Screen {
 	@Override
 	public void render(PoseStack matrix, int x, int y, float p_96565_) {
 		super.render(matrix, x, y, p_96565_);
+		
+		// Gun Parts Selection Rendering
 		list.render(matrix, x, y, p_96565_);
+		
+		// Field Indicators
 		this.font.drawShadow(matrix, "x: ", (float) 10 + (-AnimationScreen.this.font.width("x: ") / 2), (float) (4),
 				16777215, true);
 		this.font.drawShadow(matrix, "y: ", (float) 10 + (-AnimationScreen.this.font.width("y: ") / 2), (float) (24),
@@ -164,8 +190,109 @@ public class AnimationScreen extends Screen {
 				16777215, true);
 		this.font.drawShadow(matrix, "rz: ", (float) 10 + (-AnimationScreen.this.font.width("rz: ") / 2), (float) (104),
 				16777215, true);
+		
+		// Animation line rendering
+		
+		/*RenderSystem.enableBlend();
+		RenderSystem.setShader(GameRenderer::getPositionTexShader);
+		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F); 
+		RenderSystem.setShaderTexture(0, WIDGETS); 
+		this.blit(matrix, i, j, 0, 106, 20, 20);*/
+		
+		/*
+		RenderSystem.setShader(GameRenderer::getPositionTexShader);
+		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F); 
+		RenderSystem.setShaderTexture(0, WIDGETS); 
+	    BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
+	    Matrix4f last = matrix.last().pose();
+	    bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+	    float v = 256;
+	    float uv = 1f;
+	    float xt = 0;
+	    float yt = 0;
+	    bufferbuilder.vertex(last, 0, 125, 0).uv(0, 126f/256f).color(1.0F, 1.0F, 1.0F, 1.0f).endVertex();
+	    bufferbuilder.vertex(last, 90, 125, 0).uv(20f/256f, 126f/256f).color(1.0F, 1.0F, 1.0F, 1.0f).endVertex();
+	    bufferbuilder.vertex(last, 90, 106, 0).uv(20f/256f, 106f/256f).color(1.0F, 1.0F, 1.0F, 1.0f).endVertex();
+	    bufferbuilder.vertex(last, 0, 106, 0).uv(0, 106f/256f).color(1.0F, 1.0F, 1.0F, 1.0f).endVertex();
+	    bufferbuilder.end();
+	    BufferUploader.end(bufferbuilder);*/
+		prev = prog;
+		if(start) {
+			if (prog < MAX) {
+				prog += ClientHandler.partialTicks;
+				if (prog > MAX) {
+					prog = MAX;
+				}
+			} else {
+				start = false;
+			}
+		}else {
+			if (prog > 0) {
+				prog -= ClientHandler.partialTicks;
+				if (prog < 0) {
+					prog = 0;
+				}
+			}
+		}
+		renderWidget(matrix, 100, 49, 0, 66, 200, 20, 100, -14);
+		float v = (prev + (prog - prev)
+				* (prev == 0 || 
+				prev == MAX ? 0 : 
+				ClientHandler.partialTicks)) / MAX;
+		AButton button = (AButton)buttons.get(0);
+		MAX = 40f;
+		button.y = 108;
+		button.x = (int)Mth.lerp(v, 100, 200);
+	}
+	
+	public void renderWidget(PoseStack matrix, int x, int y, int i, int j, int w, 
+			int h, int w2, int h2) {
+		RenderSystem.setShader(GameRenderer::getPositionTexShader);
+		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F); 
+		RenderSystem.setShaderTexture(0, WIDGETS); 
+	    BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
+	    Matrix4f last = matrix.last().pose();
+	    bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+	    bufferbuilder.vertex(last, (i)+x, ((j+h)+y)+h2, 0).uv(0, (j+h)/256f).color(1.0F, 1.0F, 1.0F, 1.0f).endVertex();
+	    bufferbuilder.vertex(last, ((i+w)+x)+w2, ((j+h)+y)+h2, 0).uv((i+w)/256f, (j+h)/256f).color(1.0F, 1.0F, 1.0F, 1.0f).endVertex();
+	    bufferbuilder.vertex(last, ((i+w)+x)+w2, (j)+y, 0).uv((i+w)/256f, (j)/256f).color(1.0F, 1.0F, 1.0F, 1.0f).endVertex();
+	    bufferbuilder.vertex(last, (i)+x, (j)+y, 0).uv(0, (j)/256f).color(1.0F, 1.0F, 1.0F, 1.0f).endVertex();
+	    bufferbuilder.end();
+	    BufferUploader.end(bufferbuilder);
 	}
 
+	public class AButton extends Button {
+
+		public AButton(int x, int y, int w, int h, OnPress press) {
+			super(x, y, w, h, new TranslatableComponent(""), press);
+		}
+		
+		@Override
+		public void render(PoseStack matrix, int x, int y, float p_93660_) {
+			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F); 
+			RenderSystem.setShaderTexture(0, WIDGETS);
+			blit(matrix, this.x, this.y, 224, 0, 15, 15);
+			//renderWidget(matrix, this.x, this.y, 208, 0, 15, 15, 0, 0);
+			//super.render(p_93657_, p_93658_, p_93659_, p_93660_);
+		}
+		
+		@Override
+		protected void renderBg(PoseStack p_93661_, Minecraft p_93662_, int p_93663_, int p_93664_) {
+			super.renderBg(p_93661_, p_93662_, p_93663_, p_93664_);
+		}
+		
+		@Override
+		public void renderButton(PoseStack p_93746_, int p_93747_, int p_93748_, float p_93749_) {
+			super.renderButton(p_93746_, p_93747_, p_93748_, p_93749_);
+		}
+		
+		@Override
+		public void renderToolTip(PoseStack p_93736_, int p_93737_, int p_93738_) {
+			super.renderToolTip(p_93736_, p_93737_, p_93738_);
+		}
+		
+	}
+	
 	@OnlyIn(Dist.CLIENT)
 	public class AnimationSelectionList extends ObjectSelectionList<AnimationSelectionList.Entry> {
 

@@ -39,7 +39,6 @@ public class Animation {
 		this.name = name;
 		assert keyframes.length >= 1;
 		if(model != null) {
-			//LogUtils.getLogger().info("Model is null for animation: " + name);
 			this.keyframes = new Keyframe[keyframes.length+1];
 			Keyframe cero = new Keyframe(0);
 			for(GunModelPart part : model.getGunParts()) {
