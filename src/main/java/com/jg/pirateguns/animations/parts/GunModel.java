@@ -1,10 +1,12 @@
 package com.jg.pirateguns.animations.parts;
 
+import java.util.List;
+
 import com.jg.pirateguns.PirateGuns;
+import com.jg.pirateguns.animations.Animation;
 import com.jg.pirateguns.animations.Transform;
 import com.jg.pirateguns.client.handlers.ClientHandler;
 import com.jg.pirateguns.client.rendering.RenderHelper;
-import com.jg.pirateguns.entities.GunBullet;
 import com.jg.pirateguns.guns.GunItem;
 import com.jg.pirateguns.network.ShootMessage;
 import com.jg.pirateguns.utils.PGMath;
@@ -27,15 +29,24 @@ import net.minecraft.world.item.ItemStack;
 public abstract class GunModel {
 	
 	protected ClientHandler client;
+	
 	protected GunModelPart[] parts;
+	
 	public GunItem gun;
+	
+	private Animation current;
+	
 	protected boolean hasChanges;
+	protected boolean playAnimation;
+	protected boolean debugMode;
 	
 	public GunModel(GunModelPart[] gunModelParts, Item gun, ClientHandler client) {
 		this.parts = gunModelParts;
 		this.gun = (GunItem)gun;
 		this.client = client;
+		this.current = Animation.EMPTY;
 		this.hasChanges = true;
+		this.playAnimation = true;
 	}
 	
 	// Transform
@@ -69,6 +80,7 @@ public abstract class GunModel {
 	
 	protected void renderItem(LocalPlayer player, ItemStack stack, MultiBufferSource buffer, PoseStack matrix, int light, Transform transform) {
 		translateAndRotate(transform, matrix);
+		//LogUtils.getLogger().info("Transform: " + transform.pos[0]);
 		Minecraft.getInstance().getItemInHandRenderer()
 		.renderItem(player, stack, TransformType.FIRST_PERSON_RIGHT_HAND
 				, false, matrix, buffer, light);
@@ -116,13 +128,47 @@ public abstract class GunModel {
 		return parts;
 	}
 	
-	// Abstract methods
+	// Getters and setters
 	
-	public abstract void tick(Player player, ItemStack stack);
+	public void setAnimation(Animation current) {
+		this.current = current;
+		this.current.reset();
+		current.onStart();
+	}
+	
+	public Animation getAnimation() {
+		return current;
+	}
+	
+	public boolean canPlayAnimation() {
+		return playAnimation;
+	}
+
+	public void setPlayAnimation(boolean playAnimation) {
+		this.playAnimation = playAnimation;
+	}
+	
+	public boolean isDebugModeEnabled() {
+		return debugMode;
+	}
+
+	public void setDebugMode(boolean debugMode) {
+		this.debugMode = debugMode;
+	}
+	
+	// Abstract methods
+
+	public void tick(Player player, ItemStack stack) {
+		if(current != Animation.EMPTY) {
+			current.tick();
+		}
+	}
 	
 	public abstract void render(LocalPlayer player, ItemStack stack, MultiBufferSource buffer, PoseStack matrix, int light);
 	
 	public abstract void reload(Player player, ItemStack stack);
+	
+	public abstract List<GunModelPart> getGunParts();
 	
 	public abstract GunModelPart getGunModelPart();
 }

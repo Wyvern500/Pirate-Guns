@@ -4,41 +4,71 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.jg.pirateguns.animations.parts.GunModel;
+
 public class Keyframe {
 
 	public int dur;
-	public Map<String, float[]> values;
+	public int startTick;
+	public Map<String, float[]> pos;
+	public Map<String, float[]> rot;
 	
 	public Keyframe(int dur) {
 		this.dur = dur;
-		values = new HashMap<>();
+		this.pos = new HashMap<>();
+		this.rot = new HashMap<>();
 	}
 	
-	public Keyframe addValue(String id, float[] values) {
-		this.values.put(id, values);
+	public Keyframe addPos(String id, float x, float y, float z) {
+		this.pos.put(id, new float[] { x, y, z } );
 		return this;
 	}
 	
-	public void copyValues(Keyframe keyframe) {
-		for(Entry<String, float[]> entry : values.entrySet()) {
-			this.values.put(entry.getKey(), entry.getValue().clone());
-		}
+	public Keyframe addPos(String id, float[] values) {
+		this.pos.put(id, values);
+		return this;
 	}
 	
-	public void setValues(String id, float[] values) {
-		if(!this.values.containsKey(id)) {
-			this.values.put(id, new float[] { 0.0f, 0.0f, 0.0f });
-		}
-		this.values.get(id)[0] = values[0];
-		this.values.get(id)[1] = values[1];
-		this.values.get(id)[2] = values[2];
+	public Keyframe addRot(String id, float rx, float ry, float rz) {
+		this.rot.put(id, new float[] { rx, ry, rz } );
+		return this;
 	}
 	
-	public float[] getValue(String id){
-		if(!this.values.containsKey(id)) {
-			this.values.put(id, new float[] { 0.0f, 0.0f, 0.0f });
+	public Keyframe addRot(String id, float[] values) {
+		this.rot.put(id, values);
+		return this;
+	}
+	
+	public void setPos(String id, float[] pos) {
+		if(!this.pos.containsKey(id)) {
+			this.pos.put(id, new float[] { 0.0f, 0.0f, 0.0f });
 		}
-		return values.get(id);
+		this.pos.get(id)[0] = pos[0];
+		this.pos.get(id)[1] = pos[1];
+		this.pos.get(id)[2] = pos[2];
+	}
+	
+	public void setRot(String id, float[] rot) {
+		if(!this.rot.containsKey(id)) {
+			this.rot.put(id, new float[] { 0.0f, 0.0f, 0.0f });
+		}
+		this.rot.get(id)[0] = rot[0];
+		this.rot.get(id)[1] = rot[1];
+		this.rot.get(id)[2] = rot[2];
+	}
+	
+	public float[] getPos(String id){
+		if(!this.pos.containsKey(id)) {
+			this.pos.put(id, new float[] { 0.0f, 0.0f, 0.0f });
+		}
+		return pos.get(id);
+	}
+	
+	public float[] getRot(String id){
+		if(!this.rot.containsKey(id)) {
+			this.rot.put(id, new float[] { 0.0f, 0.0f, 0.0f });
+		}
+		return rot.get(id);
 	}
 	
 }

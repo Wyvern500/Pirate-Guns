@@ -24,6 +24,18 @@ public class Transform {
 		rot = new float[] { transform.rot[0], transform.rot[1], transform.rot[2] };
 	}
 	
+	public void setPos(float[] pos) {
+		this.pos[0] = pos[0];
+		this.pos[1] = pos[1];
+		this.pos[2] = pos[2];
+	}
+	
+	public void setRot(float[] rot) {
+		this.rot[0] = rot[0];
+		this.rot[1] = rot[1];
+		this.rot[2] = rot[2];
+	}
+	
 	public void setPos(float x, float y, float z) {
 		pos[0] = x;
 		pos[1] = y;

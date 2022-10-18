@@ -7,6 +7,7 @@ import com.jg.pirateguns.animations.gunmodels.PiratePistolGunModel;
 import com.jg.pirateguns.animations.parts.GunModel;
 import com.jg.pirateguns.client.models.entities.CanonModel;
 import com.jg.pirateguns.client.rendering.entities.CanonRenderer;
+import com.jg.pirateguns.client.screens.AnimationScreen;
 import com.jg.pirateguns.guns.GunItem;
 import com.jg.pirateguns.network.LoadBulletMessage;
 import com.jg.pirateguns.registries.EntityRegistries;
@@ -53,10 +54,12 @@ public class ClientEventHandler {
 			GLFW.GLFW_KEY_N, PirateGuns.MODID);
 	public static final KeyMapping M = new KeyMapping("key.jgpg.m", 
 			GLFW.GLFW_KEY_M, PirateGuns.MODID);
-	public static final KeyMapping Z = new KeyMapping("key.jgpg.z", 
-			GLFW.GLFW_KEY_Z, PirateGuns.MODID);
-	public static final KeyMapping X = new KeyMapping("key.jgpg.x", 
-			GLFW.GLFW_KEY_X, PirateGuns.MODID);
+	public static final KeyMapping H = new KeyMapping("key.jgpg.z", 
+			GLFW.GLFW_KEY_H, PirateGuns.MODID);
+	public static final KeyMapping J = new KeyMapping("key.jgpg.x", 
+			GLFW.GLFW_KEY_J, PirateGuns.MODID);
+	public static final KeyMapping MINUS = new KeyMapping("key.jgpg.-", 
+			GLFW.GLFW_KEY_MINUS, PirateGuns.MODID);
 	
 	public static void setup() {
 		EntityRenderers.register(EntityRegistries.CANON.get(), 
@@ -161,10 +164,13 @@ public class ClientEventHandler {
 						client.dec(2);
 					} else if(N.getKey().getValue() == e.getKey()) {
 						client.inc(2);
-					} else if(Z.getKey().getValue() == e.getKey()) {
+					} else if(H.getKey().getValue() == e.getKey()) {
 						client.left();
-					} else if(X.getKey().getValue() == e.getKey()) {
+					} else if(J.getKey().getValue() == e.getKey()) {
 						client.right();
+					} else if(47 == e.getKey()) {
+						Minecraft.getInstance().setScreen(new AnimationScreen(client.getGunModel()));
+						System.out.println("ss");
 					} else if(SWITCH.getKey().getValue() == e.getKey()) {
 						client.switchRotationMode();
 					} 
@@ -178,18 +184,20 @@ public class ClientEventHandler {
 	}
 	
 	private static void handleRawMouse(InputEvent.RawMouseEvent e) {
-		Player player = Minecraft.getInstance().player;
-		if(player != null) {
-			if(player.getMainHandItem().getItem() instanceof GunItem) {
-				if(e.getAction() == GLFW.GLFW_PRESS) {
-					if(e.getButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
-						if(client.getGunModel() != null) {
-							if(client.getRecoilHandler().getProgress() == 0) {
-								client.shoot(player);
+		if(Minecraft.getInstance().screen == null) {
+			Player player = Minecraft.getInstance().player;
+			if(player != null) {
+				if(player.getMainHandItem().getItem() instanceof GunItem) {
+					if(e.getAction() == GLFW.GLFW_PRESS) {
+						if(e.getButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+							if(client.getGunModel() != null) {
+								if(client.getRecoilHandler().getProgress() == 0) {
+									client.shoot(player);
+								}
+								LogUtils.getLogger().info("Shooting");
 							}
-							LogUtils.getLogger().info("Shooting");
+							PirateGuns.channel.sendToServer(new LoadBulletMessage(false));
 						}
-						PirateGuns.channel.sendToServer(new LoadBulletMessage(false));
 					}
 				}
 			}
