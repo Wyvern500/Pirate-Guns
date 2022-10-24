@@ -1,10 +1,14 @@
 package com.jg.pirateguns.animations;
 
+import java.util.Arrays;
+
 import com.jg.pirateguns.utils.PGMath;
 
 import net.minecraft.util.Mth;
 
 public class Transform {
+	
+	public static final Transform EMPTY = new Transform();
 	
 	public float[] pos;
 	public float[] rot;
@@ -90,6 +94,11 @@ public class Transform {
 		t.addPos(pos);
 		t.addRot(rot);
 		return t;
+	}
+	
+	@Override
+	public String toString() {
+		return "Pos: " + Arrays.toString(pos) + " Rot: " + Arrays.toString(rot);
 	}
 	
 }

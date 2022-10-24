@@ -1,13 +1,31 @@
 package com.jg.pirateguns.client.screens;
 
+import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
+import javax.annotation.Nullable;
+
+import com.google.common.collect.Lists;
+import com.jg.pirateguns.animations.Animation;
+import com.jg.pirateguns.animations.Keyframe;
+import com.jg.pirateguns.animations.Transform;
 import com.jg.pirateguns.animations.parts.GunModel;
 import com.jg.pirateguns.animations.parts.GunModelPart;
+import com.jg.pirateguns.animations.serializers.AnimationSerializer;
 import com.jg.pirateguns.client.handlers.ClientHandler;
 import com.jg.pirateguns.client.rendering.RenderHelper;
+import com.jg.pirateguns.client.screens.widgets.GunPartKey;
+import com.jg.pirateguns.client.screens.widgets.GunPartSelectionList;
+import com.jg.pirateguns.client.screens.widgets.JGSelectionList;
+import com.jg.pirateguns.client.screens.widgets.JGSelectionList.Key;
+import com.jg.pirateguns.client.screens.widgets.JgEditBox;
+import com.jg.pirateguns.client.screens.widgets.KeyframeLineWidget;
+import com.jg.pirateguns.client.screens.widgets.KeyframeSelectionList;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
@@ -20,12 +38,22 @@ import com.mojang.logging.LogUtils;
 import com.mojang.math.Matrix4f;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.components.AbstractSelectionList;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.OptionsList;
+import net.minecraft.client.gui.components.Widget;
+import net.minecraft.client.gui.components.CycleButton.OnValueChange;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.components.ObjectSelectionList.Entry;
+import net.minecraft.client.gui.components.events.AbstractContainerEventHandler;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.narration.NarratableEntry;
+import net.minecraft.client.gui.narration.NarratedElementType;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.LanguageSelectScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
@@ -39,74 +67,130 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class AnimationScreen extends Screen {
 
-	private static ResourceLocation WIDGETS = new ResourceLocation("textures/gui/widgets.png");
-	
+	public static ResourceLocation WIDGETS = new ResourceLocation("textures/gui/widgets.png");
+
+	private GunPartsScreen gunPartScreen;
 	private final List<Button> buttons;
 	private final List<EditBox> edits;
 	private final List<OptionsList> options;
-	private AnimationSelectionList list;
+	private final List<CycleButton<Integer>> integerCycles;
+	private final List<CycleButton<Boolean>> booleanCycles;
+	// private AnimationSelectionList list;
 	private final GunModel model;
+	private AnimationSerializer as;
+
+	KeyframeLineWidget keyframeLine;
+	JGSelectionList gunPartList;
+	JGSelectionList posList;
+	JGSelectionList rotList;
+
+	private boolean debugGunParts;
 
 	private int i;
 	private int j;
-	
+
+	private int minX, maxX, deltaX;
+	private int scrollMax, scale;
+
 	private boolean start;
 	private float prog;
 	private float prev;
 	private float MAX = 4f;
-	
-	public AnimationScreen(GunModel model) {
+
+	public AnimationScreen(GunModel model, GunPartsScreen screen) {
 		super(new TranslatableComponent("Animation Screen"));
+		this.gunPartScreen = screen;
 		this.buttons = new ArrayList<>();
 		this.edits = new ArrayList<>();
 		this.options = new ArrayList<>();
+		this.integerCycles = new ArrayList<>();
+		this.booleanCycles = new ArrayList<>();
 		this.model = model;
-		i = width/2;
-		j = height/2;
+		this.as = new AnimationSerializer();
+		this.debugGunParts = true;
+		i = width / 2;
+		j = height / 2;
 	}
 
 	@Override
 	protected void init() {
 		super.init();
 
-		ItemStack stack = Minecraft.getInstance().player.getMainHandItem();
-		list = new AnimationSelectionList(minecraft, model);
+		posList = new JGSelectionList(new JGSelectionList.Key[0], this, this.font, 202, 2, 60, 14, 4, (k, i) -> {
+			if (model.getAnimation() != Animation.EMPTY) {
+				Keyframe kf = model.getAnimation().getKeyframes()[keyframeLine.getSelected()];
+				edits.get(0).setValue(String.valueOf(kf.getPos(k.getKey())[0]));
+				edits.get(1).setValue(String.valueOf(kf.getPos(k.getKey())[1]));
+				edits.get(2).setValue(String.valueOf(kf.getPos(k.getKey())[2]));
+			}
+		});
+		rotList = new JGSelectionList(new JGSelectionList.Key[0], this, this.font, 273, 2, 60, 14, 4, (k, i) -> {
+			if (model.getAnimation() != Animation.EMPTY) {
+				Keyframe kf = model.getAnimation().getKeyframes()[keyframeLine.getSelected()];
+				edits.get(3).setValue(String.valueOf(kf.getRot(k.getKey())[0]));
+				edits.get(4).setValue(String.valueOf(kf.getRot(k.getKey())[1]));
+				edits.get(5).setValue(String.valueOf(kf.getRot(k.getKey())[2]));
+			}
+		});
 
-		this.addWidget(this.list);
+		GunPartKey[] gunParts = new GunPartKey[model.getGunParts().size()];
+		for (int i = 0; i < model.getGunParts().size(); i++) {
+			gunParts[i] = new GunPartKey(font, model.getGunParts().get(i));
+		}
+		gunPartList = new JGSelectionList(gunParts, this, this.font, 100, 2, 60, 14, 4, (k, i) -> {
+			
+		});
 
+		keyframeLine = new KeyframeLineWidget(this, posList, rotList);
+
+		buttons.add(new Button(342, 2, 30, 20, new TranslatableComponent("GunParts"), (b) -> {
+			Minecraft.getInstance().screen = gunPartScreen;
+		}));
+
+		// String.valueOf(((GunPartKey)gunPartList.getSelectedKey())
+		// .getPart().getTransform().pos[0])
 		// Pos
 		// x
 		edits.add(new EditBox(font, 16, 0, 80, 20, new TranslatableComponent("animationScreen.pos.x")));
-		edits.get(0).setValue(String.valueOf(list.getSelected().part.getTransform().pos[0]));
+		edits.get(0).setValue("0");
 		edits.get(0).setResponder((s) -> {
 			try {
 				float val = Float.parseFloat(s);
-				list.getSelected().part.getTransform().pos[0] = val;
-				LogUtils.getLogger().info("Val: " + val);
+				if (posList.getSelected() != -1) {
+					if (model.getAnimation() != Animation.EMPTY) {
+						getVec(false)[0] = val;
+					}
+				}
 			} catch (Exception e) {
 
 			}
 		});
 		// y
 		edits.add(new EditBox(font, 16, 20, 80, 20, new TranslatableComponent("animationScreen.pos.y")));
-		edits.get(1).setValue(String.valueOf(list.getSelected().part.getTransform().pos[1]));
+		edits.get(1).setValue("0");
 		edits.get(1).setResponder((s) -> {
 			try {
 				float val = Float.parseFloat(s);
-				list.getSelected().part.getTransform().pos[1] = val;
-				LogUtils.getLogger().info("Val: " + val);
+				if (posList.getSelected() != -1) {
+					if (model.getAnimation() != Animation.EMPTY) {
+						getVec(false)[1] = val;
+					}
+				}
 			} catch (Exception e) {
 
 			}
 		});
 		// z
 		edits.add(new EditBox(font, 16, 40, 80, 20, new TranslatableComponent("animationScreen.pos.z")));
-		edits.get(2).setValue(String.valueOf(list.getSelected().part.getTransform().pos[2]));
+		edits.get(2).setValue("0");
 		edits.get(2).setResponder((s) -> {
 			try {
 				float val = Float.parseFloat(s);
-				list.getSelected().part.getTransform().pos[2] = val;
-				LogUtils.getLogger().info("Val: " + val);
+				if (posList.getSelected() != -1) {
+					if (model.getAnimation() != Animation.EMPTY) {
+						getVec(false)[2] = val;
+					}
+				}
 			} catch (Exception e) {
 
 			}
@@ -115,46 +199,121 @@ public class AnimationScreen extends Screen {
 		// Rot
 		// rx
 		edits.add(new EditBox(font, 16, 60, 80, 20, new TranslatableComponent("animationScreen.rot.x")));
-		edits.get(3).setValue(String.valueOf(list.getSelected().part.getTransform().rot[0]));
+		edits.get(3).setValue("0");
 		edits.get(3).setResponder((s) -> {
 			try {
 				float val = Float.parseFloat(s);
-				list.getSelected().part.getTransform().rot[0] = val;
-				LogUtils.getLogger().info("Val: " + val);
+				if (rotList.getSelected() != -1) {
+					if (model.getAnimation() != Animation.EMPTY) {
+						getVec(true)[0] = val;
+					}
+				}
 			} catch (Exception e) {
 
 			}
 		});
 		// ry
 		edits.add(new EditBox(font, 16, 80, 80, 20, new TranslatableComponent("animationScreen.rot.y")));
-		edits.get(4).setValue(String.valueOf(list.getSelected().part.getTransform().rot[1]));
+		edits.get(4).setValue("0");
 		edits.get(4).setResponder((s) -> {
 			try {
 				float val = Float.parseFloat(s);
-				list.getSelected().part.getTransform().rot[1] = val;
-				LogUtils.getLogger().info("Val: " + val);
+				if (rotList.getSelected() != -1) {
+					if (model.getAnimation() != Animation.EMPTY) {
+						getVec(true)[1] = val;
+					}
+				}
 			} catch (Exception e) {
 
 			}
 		});
 		// rz
 		edits.add(new EditBox(font, 16, 100, 80, 20, new TranslatableComponent("animationScreen.rot.z")));
-		edits.get(5).setValue(String.valueOf(list.getSelected().part.getTransform().rot[2]));
+		edits.get(5).setValue("0");
 		edits.get(5).setResponder((s) -> {
 			try {
 				float val = Float.parseFloat(s);
-				list.getSelected().part.getTransform().rot[2] = val;
-				LogUtils.getLogger().info("Val: " + val);
+				if (rotList.getSelected() != -1) {
+					if (model.getAnimation() != Animation.EMPTY) {
+						getVec(true)[2] = val;
+					}
+				}
 			} catch (Exception e) {
 
 			}
 		});
+		// File managing
+		edits.add(new JgEditBox(font, 100, 59, 80, 20, new TranslatableComponent("animationScreen.file")) {
 
-		//Buttons
-		buttons.add(new AButton(100, 49, 20, 20, (b) -> {
-			start = true;
+		});
+		edits.get(6).setValue("");
+		edits.get(6).setResponder((s) -> {
+
+		});
+
+		// Buttons
+		buttons.add(new Button(342, 24, 30, 20, new TranslatableComponent("Play"), (b) -> {
+			model.setPlayAnimation(true);
 		}));
-		
+		buttons.add(new Button(374, 24, 30, 20, new TranslatableComponent("Stop"), (b) -> {
+			model.setPlayAnimation(false);
+		}));
+		buttons.add(new Button(342, 44, 30, 20, new TranslatableComponent("Next"), (b) -> {
+			if (model.getAnimation() != Animation.EMPTY) {
+				Animation anim = model.getAnimation();
+				/*
+				 * int next = anim.getCurrent()+1; if(next > anim.getKeyframes().length) { next
+				 * = anim.getKeyframes().length; } anim.setCurrent(next);
+				 */
+				anim.nextDebugKeyframe();
+			}
+		}));
+		buttons.add(new Button(374, 44, 30, 20, new TranslatableComponent("Prev"), (b) -> {
+			if (model.getAnimation() != Animation.EMPTY) {
+				Animation anim = model.getAnimation();
+				/*
+				 * int prev = anim.getCurrent()-1; if(prev < 1) { prev = 1; }
+				 * anim.setCurrent(prev);
+				 */
+				anim.prevDebugKeyframe();
+			}
+		}));
+		buttons.add(new Button(202, 55, 30, 20, new TranslatableComponent("Update"), (b) -> {
+			model.setShouldUpdateAnimation(true);
+		}));
+
+		buttons.add(new Button(234, 55, 30, 20, new TranslatableComponent("Add"), (b) -> {
+			String val = edits.get(6).getValue();
+			if (val.contains(":")) {
+				String[] sVal = val.split(":");
+				if (sVal[0].equals("t")) {
+					if (model.getAnimation() != Animation.EMPTY && keyframeLine.getSelected() != -1) {
+						// model.getAnimation().getKeyframes()[keyframeLine.getSelected()].pos.put(val,
+						// null);
+						posList.addKey(new Key(font, sVal[1]));
+					}
+				} else if (sVal[0].equals("r")) {
+					rotList.addKey(new Key(font, sVal[1]));
+				}
+			}
+		}));
+
+		buttons.add(new Button(266, 55, 30, 20, new TranslatableComponent("Remove"), (b) -> {
+			String val = edits.get(6).getValue();
+			if (val.contains(":")) {
+				String[] sVal = val.split(":");
+				if (sVal[0].equals("t")) {
+					if (posList.getSelected() != -1) {
+						posList.removeKey(posList.getSelected());
+					}
+				} else if (sVal[0].equals("r")) {
+					if (rotList.getSelected() != -1) {
+						rotList.removeKey(rotList.getSelected());
+					}
+				}
+			}
+		}));
+
 		// Initializing widgets
 		for (Button b : buttons) {
 			addRenderableWidget(b);
@@ -167,16 +326,21 @@ public class AnimationScreen extends Screen {
 		for (OptionsList b : options) {
 			addRenderableWidget(b);
 		}
+		for (CycleButton<Boolean> e : booleanCycles) {
+			addRenderableWidget(e);
+		}
+		for (CycleButton<Integer> e : integerCycles) {
+			addRenderableWidget(e);
+		}
 
+		if (model.getAnimation() != Animation.EMPTY) {
+			keyframeLine.setAnimDur(model.getAnimation().getDuration());
+			keyframeLine.setKeyframes(model.getAnimation().getKeyframes());
+		}
 	}
 
 	@Override
 	public void render(PoseStack matrix, int x, int y, float p_96565_) {
-		super.render(matrix, x, y, p_96565_);
-		
-		// Gun Parts Selection Rendering
-		list.render(matrix, x, y, p_96565_);
-		
 		// Field Indicators
 		this.font.drawShadow(matrix, "x: ", (float) 10 + (-AnimationScreen.this.font.width("x: ") / 2), (float) (4),
 				16777215, true);
@@ -190,34 +354,13 @@ public class AnimationScreen extends Screen {
 				16777215, true);
 		this.font.drawShadow(matrix, "rz: ", (float) 10 + (-AnimationScreen.this.font.width("rz: ") / 2), (float) (104),
 				16777215, true);
-		
-		// Animation line rendering
-		
-		/*RenderSystem.enableBlend();
-		RenderSystem.setShader(GameRenderer::getPositionTexShader);
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F); 
-		RenderSystem.setShaderTexture(0, WIDGETS); 
-		this.blit(matrix, i, j, 0, 106, 20, 20);*/
-		
-		/*
-		RenderSystem.setShader(GameRenderer::getPositionTexShader);
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F); 
-		RenderSystem.setShaderTexture(0, WIDGETS); 
-	    BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
-	    Matrix4f last = matrix.last().pose();
-	    bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-	    float v = 256;
-	    float uv = 1f;
-	    float xt = 0;
-	    float yt = 0;
-	    bufferbuilder.vertex(last, 0, 125, 0).uv(0, 126f/256f).color(1.0F, 1.0F, 1.0F, 1.0f).endVertex();
-	    bufferbuilder.vertex(last, 90, 125, 0).uv(20f/256f, 126f/256f).color(1.0F, 1.0F, 1.0F, 1.0f).endVertex();
-	    bufferbuilder.vertex(last, 90, 106, 0).uv(20f/256f, 106f/256f).color(1.0F, 1.0F, 1.0F, 1.0f).endVertex();
-	    bufferbuilder.vertex(last, 0, 106, 0).uv(0, 106f/256f).color(1.0F, 1.0F, 1.0F, 1.0f).endVertex();
-	    bufferbuilder.end();
-	    BufferUploader.end(bufferbuilder);*/
+		this.font.drawShadow(matrix, "Animation Name: " + model.getAnimation().getName(),
+				(float) 10
+						+ (-AnimationScreen.this.font.width("Animation Name: " + model.getAnimation().getName()) / 2),
+				(float) (124), 16777215, true);
+
 		prev = prog;
-		if(start) {
+		if (start) {
 			if (prog < MAX) {
 				prog += ClientHandler.partialTicks;
 				if (prog > MAX) {
@@ -226,7 +369,7 @@ public class AnimationScreen extends Screen {
 			} else {
 				start = false;
 			}
-		}else {
+		} else {
 			if (prog > 0) {
 				prog -= ClientHandler.partialTicks;
 				if (prog < 0) {
@@ -234,255 +377,181 @@ public class AnimationScreen extends Screen {
 				}
 			}
 		}
-		renderWidget(matrix, 100, 49, 0, 66, 200, 20, 100, -14);
-		float v = (prev + (prog - prev)
-				* (prev == 0 || 
-				prev == MAX ? 0 : 
-				ClientHandler.partialTicks)) / MAX;
-		AButton button = (AButton)buttons.get(0);
-		MAX = 40f;
-		button.y = 108;
-		button.x = (int)Mth.lerp(v, 100, 200);
+		renderWidget(matrix, 100, 14, 0, 66, 200, 20, 100, 20);
+		renderWidget(matrix, 100, 51, 0, 46, 200, 20, 100, -14);
+
+		super.render(matrix, x, y, p_96565_);
+
+		// Gun Parts Selection Rendering
+		gunPartList.render(matrix, x, y, p_96565_);
+		posList.render(matrix, x, y, p_96565_);
+		rotList.render(matrix, x, y, p_96565_);
+
+		keyframeLine.render(matrix, x, y, p_96565_);
+		minX = 100;
+		maxX = 400;
+		deltaX = maxX - minX;
 	}
-	
-	public void renderWidget(PoseStack matrix, int x, int y, int i, int j, int w, 
-			int h, int w2, int h2) {
+
+	@Override
+	public boolean mouseClicked(double p_94695_, double p_94696_, int p_94697_) {
+		keyframeLine.onClick((int) p_94695_, (int) p_94696_);
+		posList.onClick((int) p_94695_, (int) p_94696_);
+		rotList.onClick((int) p_94695_, (int) p_94696_);
+		gunPartList.onClick((int) p_94695_, (int) p_94696_);
+		return super.mouseClicked(p_94695_, p_94696_, p_94697_);
+	}
+
+	@Override
+	public void tick() {
+		super.tick();
+		this.posList.tick();
+		this.rotList.tick();
+		gunPartList.tick();
+		if (model != null) {
+			if (model.getAnimation() == Animation.EMPTY) {
+				if (keyframeLine.getKeyframes() != null) {
+					keyframeLine.setKeyframes(null);
+				}
+				/*
+				 * for(int i = 0; i < renderables.size(); i++) { Widget widget =
+				 * renderables.get(i); if(widget instanceof AButton) { renderables.remove(i); }
+				 * }
+				 */
+			}
+		}
+	}
+
+	@Override
+	public boolean mouseDragged(double p_94699_, double p_94700_, int p_94701_, double p_94702_, double p_94703_) {
+		posList.check((int) p_94699_, (int) p_94700_);
+		rotList.check((int) p_94699_, (int) p_94700_);
+		gunPartList.check((int) p_94699_, (int) p_94700_);
+		return super.mouseDragged(p_94699_, p_94700_, p_94701_, p_94702_, p_94703_);
+	}
+
+	@Override
+	public boolean mouseReleased(double p_94722_, double p_94723_, int p_94724_) {
+		return super.mouseReleased(p_94722_, p_94723_, p_94724_);
+	}
+
+	@Override
+	public boolean mouseScrolled(double p_94686_, double p_94687_, double p_94688_) {
+		posList.onScroll((float) (p_94686_ * (-p_94688_)));
+		rotList.onScroll((float) (p_94686_ * (-p_94688_)));
+		gunPartList.onScroll((float) (p_94686_ * (-p_94688_)));
+		return super.mouseScrolled(p_94686_, p_94687_, p_94688_);
+	}
+
+	@Override
+	public boolean keyPressed(int p_96552_, int p_96553_, int p_96554_) {
+		return super.keyPressed(p_96552_, p_96553_, p_96554_);
+	}
+
+	@Override
+	public boolean keyReleased(int p_94715_, int p_94716_, int p_94717_) {
+		((JgEditBox) edits.get(6)).onKeyRelease(p_94715_);
+		return super.keyReleased(p_94715_, p_94716_, p_94717_);
+	}
+
+	public Transform getTransform() {
+		Key key = gunPartList.getSelectedKey();
+		if (key != null) {
+			return ((GunPartKey) gunPartList.getSelectedKey()).getPart().getTransform();
+		}
+		return Transform.EMPTY;
+	}
+
+	public float[] getVec(boolean rot) {
+		Keyframe kf = model.getAnimation().getKeyframes()[keyframeLine.getSelected()];
+		if (!rot) {
+			if (!kf.pos.isEmpty()) {
+				return kf.pos.get(posList.getSelectedKey().getKey());
+			} else {
+				return new float[] { 0, 0, 0 };
+			}
+		} else {
+			if (!kf.rot.isEmpty()) {
+				return kf.rot.get(rotList.getSelectedKey().getKey());
+			} else {
+				return new float[] { 0, 0, 0 };
+			}
+		}
+	}
+
+	public void renderWidget(PoseStack matrix, int x, int y, int i, int j, int w, int h, int w2, int h2) {
 		RenderSystem.setShader(GameRenderer::getPositionTexShader);
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F); 
-		RenderSystem.setShaderTexture(0, WIDGETS); 
-	    BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
-	    Matrix4f last = matrix.last().pose();
-	    bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-	    bufferbuilder.vertex(last, (i)+x, ((j+h)+y)+h2, 0).uv(0, (j+h)/256f).color(1.0F, 1.0F, 1.0F, 1.0f).endVertex();
-	    bufferbuilder.vertex(last, ((i+w)+x)+w2, ((j+h)+y)+h2, 0).uv((i+w)/256f, (j+h)/256f).color(1.0F, 1.0F, 1.0F, 1.0f).endVertex();
-	    bufferbuilder.vertex(last, ((i+w)+x)+w2, (j)+y, 0).uv((i+w)/256f, (j)/256f).color(1.0F, 1.0F, 1.0F, 1.0f).endVertex();
-	    bufferbuilder.vertex(last, (i)+x, (j)+y, 0).uv(0, (j)/256f).color(1.0F, 1.0F, 1.0F, 1.0f).endVertex();
-	    bufferbuilder.end();
-	    BufferUploader.end(bufferbuilder);
+		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+		RenderSystem.setShaderTexture(0, WIDGETS);
+		BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
+		Matrix4f last = matrix.last().pose();
+		bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+		bufferbuilder.vertex(last, (i) + x, ((j + h) + y) + h2, 0).uv(0, (j + h) / 256f).color(1.0F, 1.0F, 1.0F, 1.0f)
+				.endVertex();
+		bufferbuilder.vertex(last, ((i + w) + x) + w2, ((j + h) + y) + h2, 0).uv((i + w) / 256f, (j + h) / 256f)
+				.color(1.0F, 1.0F, 1.0F, 1.0f).endVertex();
+		bufferbuilder.vertex(last, ((i + w) + x) + w2, (j) + y, 0).uv((i + w) / 256f, (j) / 256f)
+				.color(1.0F, 1.0F, 1.0F, 1.0f).endVertex();
+		bufferbuilder.vertex(last, (i) + x, (j) + y, 0).uv(0, (j) / 256f).color(1.0F, 1.0F, 1.0F, 1.0f).endVertex();
+		bufferbuilder.end();
+		BufferUploader.end(bufferbuilder);
 	}
 
-	public class AButton extends Button {
-
-		public AButton(int x, int y, int w, int h, OnPress press) {
-			super(x, y, w, h, new TranslatableComponent(""), press);
+	public void initKeyframes() {
+		if (model.getAnimation() != Animation.EMPTY) {
+			keyframeLine.setAnimDur(model.getAnimation().getDuration());
+			keyframeLine.setKeyframes(model.getAnimation().getKeyframes());
 		}
-		
-		@Override
-		public void render(PoseStack matrix, int x, int y, float p_93660_) {
-			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F); 
-			RenderSystem.setShaderTexture(0, WIDGETS);
-			blit(matrix, this.x, this.y, 224, 0, 15, 15);
-			//renderWidget(matrix, this.x, this.y, 208, 0, 15, 15, 0, 0);
-			//super.render(p_93657_, p_93658_, p_93659_, p_93660_);
-		}
-		
-		@Override
-		protected void renderBg(PoseStack p_93661_, Minecraft p_93662_, int p_93663_, int p_93664_) {
-			super.renderBg(p_93661_, p_93662_, p_93663_, p_93664_);
-		}
-		
-		@Override
-		public void renderButton(PoseStack p_93746_, int p_93747_, int p_93748_, float p_93749_) {
-			super.renderButton(p_93746_, p_93747_, p_93748_, p_93749_);
-		}
-		
-		@Override
-		public void renderToolTip(PoseStack p_93736_, int p_93737_, int p_93738_) {
-			super.renderToolTip(p_93736_, p_93737_, p_93738_);
-		}
-		
 	}
-	
-	@OnlyIn(Dist.CLIENT)
-	public class AnimationSelectionList extends ObjectSelectionList<AnimationSelectionList.Entry> {
 
-		public AnimationSelectionList(Minecraft p_94442_, GunModel model) {
-			super(p_94442_, 100, 140, 2, 60, 16);
-			this.setRenderTopAndBottom(false);
-			// LogUtils.getLogger().info("Screen width: " + AnimationScreen.this.width +
-			// " height: " + AnimationScreen.this.height);
-			setLeftPos(100);
-			for (int i = 0; i < model.getGunParts().size(); i++) {
-				addEntry(new Entry(model.getGunParts().get(i), this.x0, 100 + (i * 18)));
-				LogUtils.getLogger().info("Adding entry for part: " + model.getGunParts().get(i).getName());
-			}
-			for (int i = 0; i < model.getGunParts().size(); i++) {
-				addEntry(new Entry(model.getGunParts().get(i), this.x0, 100 + (i * 18)));
-				LogUtils.getLogger().info("Adding entry for part: " + model.getGunParts().get(i).getName());
-			}
-			for (int i = 0; i < model.getGunParts().size(); i++) {
-				addEntry(new Entry(model.getGunParts().get(i), this.x0, 100 + (i * 18)));
-				LogUtils.getLogger().info("Adding entry for part: " + model.getGunParts().get(i).getName());
-			}
-			setSelected(getEntry(0));
-			LogUtils.getLogger().info("GunParts Size: " + model.getGunParts().size());
-		}
+	public Font getFont() {
+		return font;
+	}
 
-		@Override
-		public void render(PoseStack p_93447_, int p_93448_, int p_93449_, float p_93450_) {
-			// super.render(p_93447_, p_93448_, p_93449_, p_93450_);
-			this.renderBackground(p_93447_);
-			int i = this.getScrollbarPosition();
-			int j = i + 6;
-			Tesselator tesselator = Tesselator.getInstance();
-			BufferBuilder bufferbuilder = tesselator.getBuilder();
-			RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
-			// hovered = this.isMouseOver((double)p_93448_, (double)p_93449_) ?
-			// this.getEntryAtPosition((double)p_93448_, (double)p_93449_) : null;
+	public GunModel getGunModel() {
+		return model;
+	}
 
-			RenderSystem.setShaderTexture(0, GuiComponent.BACKGROUND_LOCATION);
-			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-			float f = 32.0F;
-			bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-			bufferbuilder.vertex((double) this.x0, (double) this.y1, 0.0D)
-					.uv((float) this.x0 / 32.0F, (float) (this.y1 + (int) this.getScrollAmount()) / 32.0F)
-					.color(32, 32, 32, 255).endVertex();
-			bufferbuilder.vertex((double) this.x1, (double) this.y1, 0.0D)
-					.uv((float) this.x1 / 32.0F, (float) (this.y1 + (int) this.getScrollAmount()) / 32.0F)
-					.color(32, 32, 32, 255).endVertex();
-			bufferbuilder.vertex((double) this.x1, (double) this.y0, 0.0D)
-					.uv((float) this.x1 / 32.0F, (float) (this.y0 + (int) this.getScrollAmount()) / 32.0F)
-					.color(32, 32, 32, 255).endVertex();
-			bufferbuilder.vertex((double) this.x0, (double) this.y0, 0.0D)
-					.uv((float) this.x0 / 32.0F, (float) (this.y0 + (int) this.getScrollAmount()) / 32.0F)
-					.color(32, 32, 32, 255).endVertex();
-			tesselator.end();
+	public JGSelectionList getGunPartList() {
+		return gunPartList;
+	}
 
-			int j1 = this.getRowLeft();
-			int k = this.y0 + 4 - (int) this.getScrollAmount();
+	public JGSelectionList getPosList() {
+		return posList;
+	}
 
-			this.renderList(p_93447_, j1, k, p_93448_, p_93449_, p_93450_);
+	public JGSelectionList getRotList() {
+		return rotList;
+	}
 
-			int k1 = this.getMaxScroll();
-			if (k1 > 0) {
-				RenderSystem.disableTexture();
-				RenderSystem.setShader(GameRenderer::getPositionColorShader);
-				int l1 = (int) ((float) ((this.y1 - this.y0) * (this.y1 - this.y0)) / (float) this.getMaxPosition());
-				l1 = Mth.clamp(l1, 32, this.y1 - this.y0 - 8);
-				int i2 = (int) this.getScrollAmount() * (this.y1 - this.y0 - l1) / k1 + this.y0;
-				if (i2 < this.y0) {
-					i2 = this.y0;
-				}
+	public List<EditBox> getEditBoxes() {
+		return edits;
+	}
 
-				bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-				bufferbuilder.vertex((double) i, (double) this.y1, 0.0D).color(0, 0, 0, 255).endVertex();
-				bufferbuilder.vertex((double) j, (double) this.y1, 0.0D).color(0, 0, 0, 255).endVertex();
-				bufferbuilder.vertex((double) j, (double) this.y0, 0.0D).color(0, 0, 0, 255).endVertex();
-				bufferbuilder.vertex((double) i, (double) this.y0, 0.0D).color(0, 0, 0, 255).endVertex();
-				bufferbuilder.vertex((double) i, (double) (i2 + l1), 0.0D).color(128, 128, 128, 255).endVertex();
-				bufferbuilder.vertex((double) j, (double) (i2 + l1), 0.0D).color(128, 128, 128, 255).endVertex();
-				bufferbuilder.vertex((double) j, (double) i2, 0.0D).color(128, 128, 128, 255).endVertex();
-				bufferbuilder.vertex((double) i, (double) i2, 0.0D).color(128, 128, 128, 255).endVertex();
-				bufferbuilder.vertex((double) i, (double) (i2 + l1 - 1), 0.0D).color(192, 192, 192, 255).endVertex();
-				bufferbuilder.vertex((double) (j - 1), (double) (i2 + l1 - 1), 0.0D).color(192, 192, 192, 255)
-						.endVertex();
-				bufferbuilder.vertex((double) (j - 1), (double) i2, 0.0D).color(192, 192, 192, 255).endVertex();
-				bufferbuilder.vertex((double) i, (double) i2, 0.0D).color(192, 192, 192, 255).endVertex();
-				tesselator.end();
-			}
+	public List<Button> getButtons() {
+		return buttons;
+	}
 
-			this.renderDecorations(p_93447_, p_93448_, p_93449_);
-			RenderSystem.enableTexture();
-			RenderSystem.disableBlend();
-		}
+	public List<CycleButton<Integer>> getIntCycles() {
+		return integerCycles;
+	}
 
-		@Override
-		protected void renderList(PoseStack p_93452_, int p_93453_, int p_93454_, int p_93455_, int p_93456_,
-				float p_93457_) {
-			int i = this.getItemCount();
-			Tesselator tesselator = Tesselator.getInstance();
-			BufferBuilder bufferbuilder = tesselator.getBuilder();
+	public List<CycleButton<Boolean>> getBooleanCycles() {
+		return booleanCycles;
+	}
 
-			for (int j = 0; j < i; ++j) {
-				int k = this.getRowTop(j);
-				int l = this.getRowTop(j) + this.itemHeight;
-				if (l >= this.y0 + 12 && k <= this.y1 - 11) {
-					int i1 = p_93454_ + j * this.itemHeight + this.headerHeight;
-					int j1 = this.itemHeight - 4;
-					Entry e = this.getEntry(j);
-					int v = 120;
-					int k1 = this.getRowWidth()-v;
-					// 160 -> 20 , 140 -> 10
-					if (this.isSelectedItem(j)) {
-						int l1 = this.x0 + this.width / 2 - (k1) / 2;
-						int i2 = this.x0 + this.width / 2 + (k1) / 2;
-						RenderSystem.disableTexture();
-						RenderSystem.setShader(GameRenderer::getPositionShader);
-						float f = this.isFocused() ? 1.0F : 0.5F;
-						RenderSystem.setShaderColor(f, f, f, 1.0F);
-						bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
-						bufferbuilder.vertex((double) l1, (double) (i1 + j1 + 2), 0.0D).endVertex();
-						bufferbuilder.vertex((double) i2, (double) (i1 + j1 + 2), 0.0D).endVertex();
-						bufferbuilder.vertex((double) i2, (double) (i1 - 2), 0.0D).endVertex();
-						bufferbuilder.vertex((double) l1, (double) (i1 - 2), 0.0D).endVertex();
-						tesselator.end();
-						RenderSystem.setShaderColor(0.0F, 0.0F, 0.0F, 1.0F);
-						bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
-						bufferbuilder.vertex((double) (l1 + 1), (double) (i1 + j1 + 1), 0.0D).endVertex();
-						bufferbuilder.vertex((double) (i2 - 1), (double) (i1 + j1 + 1), 0.0D).endVertex();
-						bufferbuilder.vertex((double) (i2 - 1), (double) (i1 - 1), 0.0D).endVertex();
-						bufferbuilder.vertex((double) (l1 + 1), (double) (i1 - 1), 0.0D).endVertex();
-						tesselator.end();
-						RenderSystem.enableTexture();
-					}
+	private CycleButton<Integer> buildIntCycle(Function<Integer, Component> f, int initVal, int x, int y, int w, int h,
+			TranslatableComponent t, OnValueChange<Integer> ch, Integer... values) {
+		CycleButton<Integer> cycle = CycleButton.builder(f).withValues(values).withInitialValue(initVal).create(x, y, w,
+				h, t, ch);
+		return cycle;
+	}
 
-					int j2 = this.getRowLeft();// Objects.equals(this.hovered, e)
-					e.render(p_93452_, j, k, j2, k1, j1, p_93455_, p_93456_, false, p_93457_);
-				}
-			}
-		}
-
-		@Override
-		protected void renderHeader(PoseStack p_93458_, int p_93459_, int p_93460_, Tesselator p_93461_) {
-			super.renderHeader(p_93458_, p_93459_, p_93460_, p_93461_);
-		}
-
-		protected int getScrollbarPosition() {
-			return x1 - 6;// super.getScrollbarPosition() + 110;
-		}
-
-		protected void renderBackground(PoseStack p_96105_) {
-
-		}
-
-		@OnlyIn(Dist.CLIENT)
-		public class Entry extends ObjectSelectionList.Entry<AnimationSelectionList.Entry> {
-
-			public GunModelPart part;
-			int x, y;
-
-			public Entry(GunModelPart part, int x, int y) {
-				this.part = part;
-				this.x = x;
-				this.y = y;
-			}
-
-			@Override
-			public Component getNarration() {
-				return new TranslatableComponent("");
-			}
-
-			@Override
-			public boolean mouseClicked(double p_94737_, double p_94738_, int button) {
-				if (button == 0) {
-					AnimationSelectionList.this.setSelected(this);
-					return true;
-				} else {
-					return false;
-				}
-			}
-
-			@Override
-			public void render(PoseStack matrix, int p_93524_, int p_93525_, int p_93526_, int p_93527_, int p_93528_,
-					int p_93529_, int p_93530_, boolean p_93531_, float p_93532_) {
-				AnimationScreen.this.font.drawShadow(matrix, part.getName(),
-						(float) (((AnimationScreen.this.width / 2) - 80)
-								- (AnimationScreen.this.font.width(part.getName()) / 2)),
-						(float) (p_93525_ + 1), 16777215, true);
-			}
-
-		}
-
+	private CycleButton<Boolean> buildBooleanCycle(Function<Boolean, Component> f, boolean initVal, int x, int y, int w,
+			int h, TranslatableComponent t, OnValueChange<Boolean> ch) {
+		CycleButton<Boolean> cycle = CycleButton.builder(f).withValues(true, false).withInitialValue(initVal).create(x,
+				y, w, h, t, ch);
+		return cycle;
 	}
 
 }

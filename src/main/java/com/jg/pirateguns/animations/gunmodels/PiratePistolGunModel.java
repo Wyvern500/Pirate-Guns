@@ -4,13 +4,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.jg.pirateguns.PirateGuns;
 import com.jg.pirateguns.animations.Animation;
 import com.jg.pirateguns.animations.Keyframe;
 import com.jg.pirateguns.animations.parts.GunModel;
 import com.jg.pirateguns.animations.parts.GunModelPart;
+import com.jg.pirateguns.animations.serializers.AnimationSerializer;
+import com.jg.pirateguns.animations.serializers.KeyframeSerializer;
 import com.jg.pirateguns.client.handlers.ClientHandler;
 import com.jg.pirateguns.guns.GunItem;
 import com.jg.pirateguns.registries.ItemRegistries;
+import com.jg.pirateguns.utils.FileUtils;
 import com.jg.pirateguns.utils.NBTUtils;
 import com.jg.pirateguns.utils.Paths;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -21,6 +27,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -55,6 +62,8 @@ public class PiratePistolGunModel extends GunModel {
 	
 	private final ModelResourceLocation HAMMER = new ModelResourceLocation(Paths.PPHAMMER, "inventory");
 	public Animation look;
+	private AnimationSerializer animS;
+	private KeyframeSerializer keyS;
 	
 	public PiratePistolGunModel(ClientHandler client) {
 		super(new GunModelPart[] { 
@@ -66,9 +75,29 @@ public class PiratePistolGunModel extends GunModel {
 				new GunModelPart("aim", -0.534f, 0.32f, 0, -0.069813f, 0, 0), 
 				new GunModelPart("sprint", 0, 0, 0.209f, 0.575958f, 0, 0),
 				new GunModelPart("recoil") }, ItemRegistries.PIRATEPISTOL.get(), client);
-		look = new Animation(this, "lookAnimation", new Keyframe(4)
-				.addPos("gun", new float[] { 0.2f, 0.5f, 0.8f }), new Keyframe(4)
-				.addPos("gun", new float[] { 0.4f, 0.1f, 0.4f })) {
+		
+		keyS = new KeyframeSerializer();
+		animS = new AnimationSerializer();
+		
+		look = new Animation(Paths.PP, "lookAnimation", new Keyframe(12)
+				.addPos("gun", 0f, -0.33f, 0).addRot("gun", -0.226892f, 0, 0)
+				.addPos("hammer", 0f, -0.33f, 0).addRot("hammer", -0.226892f, 0, 0)
+				.addRot("rightarm", -0.226892f, 0, 0), new Keyframe(4)
+				.addPos("gun", 0f, -0.13f, 0).addRot("gun", -0.026892f, 0, 0)
+				.addPos("hammer", 0f, -0.13f, 0).addRot("hammer", -0.026892f, 0, 0)
+				.addRot("rightarm", -0.026892f, 0, 0), new Keyframe(12)
+				.addPos("gun", 0, 0, 0 ).addRot("gun", 0, 0, 0)
+				.addPos("hammer", 0, 0, 0 ).addRot("hammer", 0, 0, 0)
+				.addRot("rightarm", 0, 0, 0), new Keyframe(6)
+				.addPos("gun", 0, 0, 0 ).addRot("gun", 0, 0, 0)
+				.addPos("hammer", 0, 0, 0 ).addRot("hammer", 0, 0, 0)
+				.addRot("rightarm", 0, 0, 0), new Keyframe(2)
+				.addPos("gun", 0, 0, 0 ).addRot("gun", 0, 0, 0)
+				.addPos("hammer", 0, 0, 0 ).addRot("hammer", 0, 0, 0)
+				.addRot("rightarm", 0, 0, 0), new Keyframe(8)
+				.addPos("gun", 0, 0, 0 ).addRot("gun", 0, 0, 0)
+				.addPos("hammer", 0, 0, 0 ).addRot("hammer", 0, 0, 0)
+				.addRot("rightarm", 0, 0, 0)) {
 			
 			public void onStart() {
 				LogUtils.getLogger().info("On Start Animation");
@@ -76,6 +105,12 @@ public class PiratePistolGunModel extends GunModel {
 			
 			public void onFinish() {
 				LogUtils.getLogger().info("On Finish Animation");
+				parts[1].getTransform().pos[0] = 0;
+				parts[1].getTransform().pos[1] = 0;
+				parts[1].getTransform().pos[2] = 0;
+				parts[1].getTransform().rot[0] = 0;
+				parts[1].getTransform().rot[1] = 0;
+				parts[1].getTransform().rot[2] = 0;
 			}
 			
 			public void onStartKeyframe() {
@@ -130,10 +165,26 @@ public class PiratePistolGunModel extends GunModel {
 			getGunParts().get(i).getTransform().rot[1] = 0;
 			getGunParts().get(i).getTransform().rot[2] = 0;
 		}*/
-		look = new Animation(this, "lookAnimation", new Keyframe(12)
+		if(shouldUpdateAnimation) {
+			look = AnimationSerializer.deserialize(FileUtils.readFile("pirate_gun/lookAnim.jg"));
+			shouldUpdateAnimation = false;
+		}
+		/*new Animation(Paths.PP, "lookAnimation", new Keyframe(12)
 				.addPos("gun", 0f, -0.33f, 0).addRot("gun", -0.226892f, 0, 0)
 				.addPos("hammer", 0f, -0.33f, 0).addRot("hammer", -0.226892f, 0, 0)
-				.addRot("rightarm", -0.226892f, 0, 0), new Keyframe(12)
+				.addRot("rightarm", -0.226892f, 0, 0), new Keyframe(4)
+				.addPos("gun", 0f, -0.13f, 0).addRot("gun", -0.026892f, 0, 0)
+				.addPos("hammer", 0f, -0.13f, 0).addRot("hammer", -0.026892f, 0, 0)
+				.addRot("rightarm", -0.026892f, 0, 0), new Keyframe(12)
+				.addPos("gun", 0, 0, 0 ).addRot("gun", 0, 0, 0)
+				.addPos("hammer", 0, 0, 0 ).addRot("hammer", 0, 0, 0)
+				.addRot("rightarm", 0, 0, 0), new Keyframe(6)
+				.addPos("gun", 0, 0, 0 ).addRot("gun", 0, 0, 0)
+				.addPos("hammer", 0, 0, 0 ).addRot("hammer", 0, 0, 0)
+				.addRot("rightarm", 0, 0, 0), new Keyframe(2)
+				.addPos("gun", 0, 0, 0 ).addRot("gun", 0, 0, 0)
+				.addPos("hammer", 0, 0, 0 ).addRot("hammer", 0, 0, 0)
+				.addRot("rightarm", 0, 0, 0), new Keyframe(8)
 				.addPos("gun", 0, 0, 0 ).addRot("gun", 0, 0, 0)
 				.addPos("hammer", 0, 0, 0 ).addRot("hammer", 0, 0, 0)
 				.addRot("rightarm", 0, 0, 0)) {
@@ -159,7 +210,24 @@ public class PiratePistolGunModel extends GunModel {
 			public void onTick() {
 				
 			};
-		};
+		};*/
+		/*
+		if(getAnimation() != Animation.EMPTY) {
+			for(Keyframe kf : getAnimation().getKeyframes()) {
+				LogUtils.getLogger().info("Original Original Duration: " + kf.dur);
+			}
+		}*/
+		
+		//Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		//Animation anim = gson.fromJson(gson.toJson(look), Animation.class);
+		//animS.deserialize(animS.serialize(look));
+		//System.out.println("LookAnim Path: " + new ResourceLocation(PirateGuns.MODID, "animations/look_anim.json").getPath());
+		//System.out.println(animS.serialize(look));
+		//animS.deserialize(animS.serialize(look));
+		//;
+		/*System.out.println(animS.deserialize(animS.serialize(look)).getDuration());
+		System.out.println("look: " + look.getDuration());*/
+		
 		if(hasChanges) {
 			if(NBTUtils.getLoaded(stack)) {
 				parts[2].getDTransform().setPos(0.8f, -0.6f, -1.1f);
@@ -170,7 +238,7 @@ public class PiratePistolGunModel extends GunModel {
 			}
 			hasChanges = false;
 		}
-		if(getAnimation() != Animation.EMPTY) {
+		/*if(getAnimation() != Animation.EMPTY) {
 			Map<String, float[]> posi = getAnimation().getPos();
 			if(!posi.isEmpty()) {
 				for(Entry<String, float[]> entry : posi.entrySet()) {
@@ -186,14 +254,8 @@ public class PiratePistolGunModel extends GunModel {
 				+ entry.getValue()[0] + " ry: " + entry.getValue()[1] + 
 				" rz: " + entry.getValue()[2]);
 				}
-			}
-			/*
-			parts[0].getTransform().pos = getAnimation().getPos().get("rightarm");
-			parts[0].getTransform().rot = getAnimation().getRot().get("rightarm");
-			parts[1].getTransform().pos = getAnimation().getPos().get("gun");
-			parts[1].getTransform().rot = getAnimation().getRot().get("gun");*/
-			
-		}
+			}	
+		}*/
 	}
 
 	@Override

@@ -7,6 +7,7 @@ import com.jg.pirateguns.animations.Animation;
 import com.jg.pirateguns.animations.Transform;
 import com.jg.pirateguns.client.handlers.ClientHandler;
 import com.jg.pirateguns.client.rendering.RenderHelper;
+import com.jg.pirateguns.client.screens.AnimationScreen;
 import com.jg.pirateguns.guns.GunItem;
 import com.jg.pirateguns.network.ShootMessage;
 import com.jg.pirateguns.utils.PGMath;
@@ -36,6 +37,7 @@ public abstract class GunModel {
 	
 	private Animation current;
 	
+	protected boolean shouldUpdateAnimation;
 	protected boolean hasChanges;
 	protected boolean playAnimation;
 	protected boolean debugMode;
@@ -134,6 +136,10 @@ public abstract class GunModel {
 		this.current = current;
 		this.current.reset();
 		current.onStart();
+		if(Minecraft.getInstance().screen instanceof AnimationScreen) {
+			AnimationScreen screen = (AnimationScreen)Minecraft.getInstance().screen;
+			screen.initKeyframes();
+		}
 	}
 	
 	public Animation getAnimation() {
@@ -148,6 +154,14 @@ public abstract class GunModel {
 		this.playAnimation = playAnimation;
 	}
 	
+	public boolean shouldUpdateAnimation() {
+		return shouldUpdateAnimation;
+	}
+
+	public void setShouldUpdateAnimation(boolean shouldUpdateAnimation) {
+		this.shouldUpdateAnimation = shouldUpdateAnimation;
+	}
+
 	public boolean isDebugModeEnabled() {
 		return debugMode;
 	}

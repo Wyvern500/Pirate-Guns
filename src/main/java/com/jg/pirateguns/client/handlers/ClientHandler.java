@@ -27,6 +27,7 @@ public class ClientHandler {
 	
 	public int part;
 	public boolean rotate;
+	public boolean init;
 	
 	private SprintHandler sprint;
 	private AimHandler aim;

@@ -10,13 +10,20 @@ public class Keyframe {
 
 	public int dur;
 	public int startTick;
-	public Map<String, float[]> pos;
-	public Map<String, float[]> rot;
+	public final Map<String, float[]> pos;
+	public final Map<String, float[]> rot;
 	
 	public Keyframe(int dur) {
 		this.dur = dur;
 		this.pos = new HashMap<>();
 		this.rot = new HashMap<>();
+	}
+	
+	public Keyframe(int dur, int startTick, Map<String, float[]> pos, Map<String, float[]> rot) {
+		this.dur = dur;
+		this.startTick = startTick;
+		this.pos = pos;
+		this.rot = rot;
 	}
 	
 	public Keyframe addPos(String id, float x, float y, float z) {
@@ -69,6 +76,25 @@ public class Keyframe {
 			this.rot.put(id, new float[] { 0.0f, 0.0f, 0.0f });
 		}
 		return rot.get(id);
+	}
+	
+	public Keyframe copy() {
+		return new Keyframe(this.dur, this.startTick, copyMap(pos), copyMap(rot));
+	}
+	
+	public Map<String, float[]> copyMap(Map<String, float[]> map){
+		Map<String, float[]> newmap = new HashMap<>();
+		for(Entry<String, float[]> entry : map.entrySet()) {
+			float[] original = entry.getValue();
+			newmap.put(entry.getKey(), new float[] { original[0], original[1], original[2] });
+		}
+		return newmap;
+	}
+	
+	@Override
+	public String toString() {
+		return "Duration: " + dur + " startTick: " + startTick + " pos size: " 
+				+ pos.size() + " rot size: " + rot.size();
 	}
 	
 }
