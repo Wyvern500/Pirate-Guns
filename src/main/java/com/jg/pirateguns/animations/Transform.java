@@ -96,6 +96,18 @@ public class Transform {
 		return t;
 	}
 	
+	public void copyFrom(Transform t) {
+		this.pos = new float[] { t.pos[0], t.pos[1], t.pos[2] };
+		this.rot = new float[] { t.rot[0], t.rot[1], t.rot[2] };
+	}
+	
+	public Transform copy() {
+		Transform t = new Transform();
+		t.addPos(pos);
+		t.addRot(rot);
+		return t;
+	}
+	
 	@Override
 	public String toString() {
 		return "Pos: " + Arrays.toString(pos) + " Rot: " + Arrays.toString(rot);

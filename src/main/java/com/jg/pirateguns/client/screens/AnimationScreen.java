@@ -1,32 +1,21 @@
 package com.jg.pirateguns.client.screens;
 
-import java.util.AbstractList;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
+import java.util.NoSuchElementException;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
-import javax.annotation.Nullable;
-
-import com.google.common.collect.Lists;
 import com.jg.pirateguns.animations.Animation;
 import com.jg.pirateguns.animations.Keyframe;
 import com.jg.pirateguns.animations.Transform;
 import com.jg.pirateguns.animations.parts.GunModel;
-import com.jg.pirateguns.animations.parts.GunModelPart;
 import com.jg.pirateguns.animations.serializers.AnimationSerializer;
 import com.jg.pirateguns.client.handlers.ClientHandler;
-import com.jg.pirateguns.client.rendering.RenderHelper;
 import com.jg.pirateguns.client.screens.widgets.GunPartKey;
-import com.jg.pirateguns.client.screens.widgets.GunPartSelectionList;
 import com.jg.pirateguns.client.screens.widgets.JGSelectionList;
 import com.jg.pirateguns.client.screens.widgets.JGSelectionList.Key;
 import com.jg.pirateguns.client.screens.widgets.JgEditBox;
 import com.jg.pirateguns.client.screens.widgets.KeyframeLineWidget;
-import com.jg.pirateguns.client.screens.widgets.KeyframeSelectionList;
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.BufferUploader;
@@ -39,31 +28,16 @@ import com.mojang.math.Matrix4f;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiComponent;
-import net.minecraft.client.gui.components.AbstractSelectionList;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
+import net.minecraft.client.gui.components.CycleButton.OnValueChange;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.OptionsList;
-import net.minecraft.client.gui.components.Widget;
-import net.minecraft.client.gui.components.CycleButton.OnValueChange;
-import net.minecraft.client.gui.components.ObjectSelectionList;
-import net.minecraft.client.gui.components.ObjectSelectionList.Entry;
-import net.minecraft.client.gui.components.events.AbstractContainerEventHandler;
-import net.minecraft.client.gui.components.events.GuiEventListener;
-import net.minecraft.client.gui.narration.NarratableEntry;
-import net.minecraft.client.gui.narration.NarratedElementType;
-import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.gui.screens.LanguageSelectScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
-import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class AnimationScreen extends Screen {
 
@@ -77,14 +51,11 @@ public class AnimationScreen extends Screen {
 	private final List<CycleButton<Boolean>> booleanCycles;
 	// private AnimationSelectionList list;
 	private final GunModel model;
-	private AnimationSerializer as;
 
 	KeyframeLineWidget keyframeLine;
 	JGSelectionList gunPartList;
 	JGSelectionList posList;
 	JGSelectionList rotList;
-
-	private boolean debugGunParts;
 
 	private int i;
 	private int j;
@@ -92,10 +63,15 @@ public class AnimationScreen extends Screen {
 	private int minX, maxX, deltaX;
 	private int scrollMax, scale;
 
+	private boolean ctrl;
 	private boolean start;
+	private boolean rot;
 	private float prog;
 	private float prev;
 	private float MAX = 4f;
+	private boolean[] keys;
+	
+	private Keyframe kf;
 
 	public AnimationScreen(GunModel model, GunPartsScreen screen) {
 		super(new TranslatableComponent("Animation Screen"));
@@ -106,10 +82,9 @@ public class AnimationScreen extends Screen {
 		this.integerCycles = new ArrayList<>();
 		this.booleanCycles = new ArrayList<>();
 		this.model = model;
-		this.as = new AnimationSerializer();
-		this.debugGunParts = true;
 		i = width / 2;
 		j = height / 2;
+		keys = new boolean[400];
 	}
 
 	@Override
@@ -118,7 +93,8 @@ public class AnimationScreen extends Screen {
 
 		posList = new JGSelectionList(new JGSelectionList.Key[0], this, this.font, 202, 2, 60, 14, 4, (k, i) -> {
 			if (model.getAnimation() != Animation.EMPTY) {
-				Keyframe kf = model.getAnimation().getKeyframes()[keyframeLine.getSelected()];
+				Keyframe kf = model.getAnimation().getKeyframes().get(
+						keyframeLine.getSelected());
 				edits.get(0).setValue(String.valueOf(kf.getPos(k.getKey())[0]));
 				edits.get(1).setValue(String.valueOf(kf.getPos(k.getKey())[1]));
 				edits.get(2).setValue(String.valueOf(kf.getPos(k.getKey())[2]));
@@ -126,7 +102,8 @@ public class AnimationScreen extends Screen {
 		});
 		rotList = new JGSelectionList(new JGSelectionList.Key[0], this, this.font, 273, 2, 60, 14, 4, (k, i) -> {
 			if (model.getAnimation() != Animation.EMPTY) {
-				Keyframe kf = model.getAnimation().getKeyframes()[keyframeLine.getSelected()];
+				Keyframe kf = model.getAnimation().getKeyframes().get(
+						keyframeLine.getSelected());
 				edits.get(3).setValue(String.valueOf(kf.getRot(k.getKey())[0]));
 				edits.get(4).setValue(String.valueOf(kf.getRot(k.getKey())[1]));
 				edits.get(5).setValue(String.valueOf(kf.getRot(k.getKey())[2]));
@@ -143,8 +120,20 @@ public class AnimationScreen extends Screen {
 
 		keyframeLine = new KeyframeLineWidget(this, posList, rotList);
 
-		buttons.add(new Button(342, 2, 30, 20, new TranslatableComponent("GunParts"), (b) -> {
-			Minecraft.getInstance().screen = gunPartScreen;
+		booleanCycles.add(buildBooleanCycle((s) -> {
+			if(s) {
+				return new TranslatableComponent("R");
+			} else {
+				return new TranslatableComponent("T");
+			}
+		}, false, 335, 2, 30, 20, 
+			new TranslatableComponent(""), (c, v) -> {
+					rot = v;
+			})
+		);
+		
+		buttons.add(new Button(372, 2, 50, 20, new TranslatableComponent("GunParts"), (b) -> {
+			Minecraft.getInstance().setScreen(gunPartScreen);
 		}));
 
 		// String.valueOf(((GunPartKey)gunPartList.getSelectedKey())
@@ -156,9 +145,9 @@ public class AnimationScreen extends Screen {
 		edits.get(0).setResponder((s) -> {
 			try {
 				float val = Float.parseFloat(s);
-				if (posList.getSelected() != -1) {
+				if (!posList.getSelectedIndexes().isEmpty()) {
 					if (model.getAnimation() != Animation.EMPTY) {
-						getVec(false)[0] = val;
+						setVecVal(false, 0, val);
 					}
 				}
 			} catch (Exception e) {
@@ -171,9 +160,9 @@ public class AnimationScreen extends Screen {
 		edits.get(1).setResponder((s) -> {
 			try {
 				float val = Float.parseFloat(s);
-				if (posList.getSelected() != -1) {
+				if (!posList.getSelectedIndexes().isEmpty()) {
 					if (model.getAnimation() != Animation.EMPTY) {
-						getVec(false)[1] = val;
+						setVecVal(false, 1, val);
 					}
 				}
 			} catch (Exception e) {
@@ -186,9 +175,9 @@ public class AnimationScreen extends Screen {
 		edits.get(2).setResponder((s) -> {
 			try {
 				float val = Float.parseFloat(s);
-				if (posList.getSelected() != -1) {
+				if (!posList.getSelectedIndexes().isEmpty()) {
 					if (model.getAnimation() != Animation.EMPTY) {
-						getVec(false)[2] = val;
+						setVecVal(false, 2, val);
 					}
 				}
 			} catch (Exception e) {
@@ -203,9 +192,9 @@ public class AnimationScreen extends Screen {
 		edits.get(3).setResponder((s) -> {
 			try {
 				float val = Float.parseFloat(s);
-				if (rotList.getSelected() != -1) {
+				if (!posList.getSelectedIndexes().isEmpty()) {
 					if (model.getAnimation() != Animation.EMPTY) {
-						getVec(true)[0] = val;
+						setVecVal(true, 0, val);
 					}
 				}
 			} catch (Exception e) {
@@ -218,9 +207,9 @@ public class AnimationScreen extends Screen {
 		edits.get(4).setResponder((s) -> {
 			try {
 				float val = Float.parseFloat(s);
-				if (rotList.getSelected() != -1) {
+				if (!posList.getSelectedIndexes().isEmpty()) {
 					if (model.getAnimation() != Animation.EMPTY) {
-						getVec(true)[1] = val;
+						setVecVal(true, 1, val);
 					}
 				}
 			} catch (Exception e) {
@@ -233,9 +222,9 @@ public class AnimationScreen extends Screen {
 		edits.get(5).setResponder((s) -> {
 			try {
 				float val = Float.parseFloat(s);
-				if (rotList.getSelected() != -1) {
+				if (!posList.getSelectedIndexes().isEmpty()) {
 					if (model.getAnimation() != Animation.EMPTY) {
-						getVec(true)[2] = val;
+						setVecVal(true, 2, val);
 					}
 				}
 			} catch (Exception e) {
@@ -250,7 +239,30 @@ public class AnimationScreen extends Screen {
 		edits.get(6).setResponder((s) -> {
 
 		});
-
+		edits.add(new EditBox(font, 16, 120, 80, 20, new TranslatableComponent("animationScreen.dur")));
+		edits.get(7).setValue("0");
+		edits.get(7).setResponder((s) -> {
+			/*if(keyframeLine.getSelected() != -1 && !edits.get(7).getValue().isBlank()) {
+				keyframeLine.getKeyframes()[keyframeLine.getSelected()].dur = 
+						Integer.parseInt(edits.get(7).getValue());
+			}*/
+		});
+		edits.add(new EditBox(font, 16, 140, 80, 20, new TranslatableComponent("animationScreen.startTick")));
+		edits.get(8).setValue("0");
+		edits.get(8).setResponder((s) -> {
+			/*if(keyframeLine.getSelected() != -1 && !edits.get(8).getValue().isBlank()) {
+				keyframeLine.getKeyframes()[keyframeLine.getSelected()].startTick = 
+						Integer.parseInt(edits.get(8).getValue());
+			}*/
+		});
+		edits.add(new EditBox(font, 16, 160, 80, 20, new TranslatableComponent("animationScreen.duration")));
+		edits.get(9).setValue("1");
+		edits.get(9).setResponder((s) -> {
+			if(!edits.get(9).getValue().isBlank()) {
+				keyframeLine.setScale(Integer.parseInt(edits.get(9).getValue()));
+			}
+		});
+		
 		// Buttons
 		buttons.add(new Button(342, 24, 30, 20, new TranslatableComponent("Play"), (b) -> {
 			model.setPlayAnimation(true);
@@ -261,55 +273,87 @@ public class AnimationScreen extends Screen {
 		buttons.add(new Button(342, 44, 30, 20, new TranslatableComponent("Next"), (b) -> {
 			if (model.getAnimation() != Animation.EMPTY) {
 				Animation anim = model.getAnimation();
-				/*
-				 * int next = anim.getCurrent()+1; if(next > anim.getKeyframes().length) { next
-				 * = anim.getKeyframes().length; } anim.setCurrent(next);
-				 */
 				anim.nextDebugKeyframe();
 			}
 		}));
 		buttons.add(new Button(374, 44, 30, 20, new TranslatableComponent("Prev"), (b) -> {
 			if (model.getAnimation() != Animation.EMPTY) {
 				Animation anim = model.getAnimation();
-				/*
-				 * int prev = anim.getCurrent()-1; if(prev < 1) { prev = 1; }
-				 * anim.setCurrent(prev);
-				 */
 				anim.prevDebugKeyframe();
 			}
 		}));
-		buttons.add(new Button(202, 55, 30, 20, new TranslatableComponent("Update"), (b) -> {
+		buttons.add(new Button(202, 59, 30, 20, new TranslatableComponent("Update"), (b) -> {
 			model.setShouldUpdateAnimation(true);
 		}));
 
-		buttons.add(new Button(234, 55, 30, 20, new TranslatableComponent("Add"), (b) -> {
-			String val = edits.get(6).getValue();
-			if (val.contains(":")) {
-				String[] sVal = val.split(":");
-				if (sVal[0].equals("t")) {
-					if (model.getAnimation() != Animation.EMPTY && keyframeLine.getSelected() != -1) {
-						// model.getAnimation().getKeyframes()[keyframeLine.getSelected()].pos.put(val,
-						// null);
-						posList.addKey(new Key(font, sVal[1]));
+		buttons.add(new Button(234, 59, 30, 20, new TranslatableComponent("Add"), (b) -> {
+			LogUtils.getLogger().info("edits value: " + edits.get(7).getValue());
+			if(keyframeLine.getSelected() != -1) {
+				String val = gunPartList.getSelectedKey().getKey();
+				if(!rot) {
+					if (model.getAnimation() != Animation.EMPTY && 
+							keyframeLine.getSelected() != -1) {
+						LogUtils.getLogger().info(val);
+						model.getAnimation().getKeyframes().get(keyframeLine.getSelected())
+								.pos.put(val, new float[] { 0, 0, 0 });
+						posList.addKey(new Key(font, val));
 					}
-				} else if (sVal[0].equals("r")) {
-					rotList.addKey(new Key(font, sVal[1]));
+				} else {
+					if (model.getAnimation() != Animation.EMPTY && 
+							keyframeLine.getSelected() != -1) {
+						model.getAnimation().getKeyframes().get(keyframeLine.getSelected())
+								.rot.put(val, new float[] { 0, 0, 0 });
+						rotList.addKey(new Key(font, val));
+					}
 				}
+			} else if(model.getAnimation() != Animation.EMPTY 
+					&& !edits.get(7).getValue().isBlank()){
+				LogUtils.getLogger().info("Before size: " + model
+						.getAnimation().getKeyframes().size() + " selected: " + 
+								keyframeLine.getSelected());
+				int dur = Integer.parseInt(edits.get(7).getValue());
+				Keyframe kf = new Keyframe(dur);
+				kf.startTick = model.getAnimation().getDuration()+dur;
+				model.getAnimation().addKeyframe(kf);
+				/*LogUtils.getLogger().info("Keyframe added, new size: " + model
+						.getAnimation().getKeyframes().length + " selected: " + 
+						keyframeLine.getSelected());*/
+				keyframeLine.setAnimDur(model.getAnimation().getDuration());
+				keyframeLine.setKeyframes(model.getAnimation().getKeyframes());
+				/*keyframeLine.setSelected(model.getAnimation().getKeyframes()
+						.length-1);*/
+				//keyframeLine.processOnClick(keyframeLine.getSelected());
 			}
 		}));
 
-		buttons.add(new Button(266, 55, 30, 20, new TranslatableComponent("Remove"), (b) -> {
-			String val = edits.get(6).getValue();
-			if (val.contains(":")) {
-				String[] sVal = val.split(":");
-				if (sVal[0].equals("t")) {
-					if (posList.getSelected() != -1) {
-						posList.removeKey(posList.getSelected());
-					}
-				} else if (sVal[0].equals("r")) {
-					if (rotList.getSelected() != -1) {
-						rotList.removeKey(rotList.getSelected());
-					}
+		buttons.add(new Button(266, 59, 30, 20, new TranslatableComponent("Remove"), (b) -> {
+			Key[] posKeys = posList.getSelectedKeys();
+			Key[] rotKeys = rotList.getSelectedKeys();
+			boolean pos = false;
+			boolean rot = false;
+			if(posKeys.length > 0) {
+				for(Key key : posKeys) {
+					model.getAnimation().getKeyframes().get(keyframeLine.getSelected())
+							.pos.remove(key.getKey());
+					posList.removeKey(key);
+					pos = true;
+					LogUtils.getLogger().info("deleted");
+				}
+			}
+			if(rotKeys.length > 0) {
+				for(Key key : rotKeys) {
+					model.getAnimation().getKeyframes().get(keyframeLine.getSelected())
+							.rot.remove(key.getKey());
+					rotList.removeKey(key);
+					rot = true;
+				}
+			}
+			if(!pos && !rot) {
+				if(model.getAnimation() != Animation.EMPTY && keyframeLine.getSelected() != -1) {
+					model.getAnimation().removeKeyframe(keyframeLine.getSelected());
+					keyframeLine.setSelected(-1);
+					keyframeLine.setKeyframes(model.getAnimation().getKeyframes());
+					keyframeLine.setAnimDur(model.getAnimation().getDuration());
 				}
 			}
 		}));
@@ -342,23 +386,47 @@ public class AnimationScreen extends Screen {
 	@Override
 	public void render(PoseStack matrix, int x, int y, float p_96565_) {
 		// Field Indicators
-		this.font.drawShadow(matrix, "x: ", (float) 10 + (-AnimationScreen.this.font.width("x: ") / 2), (float) (4),
+		this.font.drawShadow(matrix, "x: ", (float) 10 + 
+				(-AnimationScreen.this.font.width("x: ") / 2), (float) (4),
 				16777215, true);
-		this.font.drawShadow(matrix, "y: ", (float) 10 + (-AnimationScreen.this.font.width("y: ") / 2), (float) (24),
+		this.font.drawShadow(matrix, "y: ", (float) 10 + 
+				(-AnimationScreen.this.font.width("y: ") / 2), (float) (24),
 				16777215, true);
-		this.font.drawShadow(matrix, "z: ", (float) 10 + (-AnimationScreen.this.font.width("z: ") / 2), (float) (44),
+		this.font.drawShadow(matrix, "z: ", (float) 10 + 
+				(-AnimationScreen.this.font.width("z: ") / 2), (float) (44),
 				16777215, true);
-		this.font.drawShadow(matrix, "rx: ", (float) 10 + (-AnimationScreen.this.font.width("rx: ") / 2), (float) (64),
+		this.font.drawShadow(matrix, "rx: ", (float) 10 + 
+				(-AnimationScreen.this.font.width("rx: ") / 2), (float) (64),
 				16777215, true);
-		this.font.drawShadow(matrix, "ry: ", (float) 10 + (-AnimationScreen.this.font.width("ry: ") / 2), (float) (84),
+		this.font.drawShadow(matrix, "ry: ", (float) 10 + 
+				(-AnimationScreen.this.font.width("ry: ") / 2), (float) (84),
 				16777215, true);
-		this.font.drawShadow(matrix, "rz: ", (float) 10 + (-AnimationScreen.this.font.width("rz: ") / 2), (float) (104),
+		this.font.drawShadow(matrix, "rz: ", (float) 10 + 
+				(-AnimationScreen.this.font.width("rz: ") / 2), (float) (104),
+				16777215, true);
+		this.font.drawShadow(matrix, "d: ", (float) 10 + 
+				(-AnimationScreen.this.font.width("d: ") / 2), (float) (124),
+				16777215, true);
+		this.font.drawShadow(matrix, "st: ", (float) 10 + 
+				(-AnimationScreen.this.font.width("st: ") / 2), (float) (144),
+				16777215, true);
+		this.font.drawShadow(matrix, "s: ", (float) 10 + 
+				(-AnimationScreen.this.font.width("st: ") / 2), (float) (164),
 				16777215, true);
 		this.font.drawShadow(matrix, "Animation Name: " + model.getAnimation().getName(),
 				(float) 10
-						+ (-AnimationScreen.this.font.width("Animation Name: " + model.getAnimation().getName()) / 2),
-				(float) (124), 16777215, true);
+						+ (-AnimationScreen.this.font.width("Animation Name: " + 
+				model.getAnimation().getName()) / 2),
+				(float) (184), 16777215, true);
 
+		/*if(model.getAnimation() != Animation.EMPTY) {
+			LogUtils.getLogger().info("Keyframe size: " + model.getAnimation()
+			.getKeyframes().length + " anim dur: " + model.getAnimation().getDuration());
+			for(Keyframe kf : model.getAnimation().getKeyframes()) {
+				LogUtils.getLogger().info(kf.toString());
+			}
+		}*/
+		
 		prev = prog;
 		if (start) {
 			if (prog < MAX) {
@@ -396,9 +464,9 @@ public class AnimationScreen extends Screen {
 	@Override
 	public boolean mouseClicked(double p_94695_, double p_94696_, int p_94697_) {
 		keyframeLine.onClick((int) p_94695_, (int) p_94696_);
-		posList.onClick((int) p_94695_, (int) p_94696_);
-		rotList.onClick((int) p_94695_, (int) p_94696_);
-		gunPartList.onClick((int) p_94695_, (int) p_94696_);
+		posList.onClick((int) p_94695_, (int) p_94696_, ctrl);
+		rotList.onClick((int) p_94695_, (int) p_94696_, ctrl);
+		gunPartList.onClick((int) p_94695_, (int) p_94696_, ctrl);
 		return super.mouseClicked(p_94695_, p_94696_, p_94697_);
 	}
 
@@ -408,18 +476,6 @@ public class AnimationScreen extends Screen {
 		this.posList.tick();
 		this.rotList.tick();
 		gunPartList.tick();
-		if (model != null) {
-			if (model.getAnimation() == Animation.EMPTY) {
-				if (keyframeLine.getKeyframes() != null) {
-					keyframeLine.setKeyframes(null);
-				}
-				/*
-				 * for(int i = 0; i < renderables.size(); i++) { Widget widget =
-				 * renderables.get(i); if(widget instanceof AButton) { renderables.remove(i); }
-				 * }
-				 */
-			}
-		}
 	}
 
 	@Override
@@ -427,6 +483,7 @@ public class AnimationScreen extends Screen {
 		posList.check((int) p_94699_, (int) p_94700_);
 		rotList.check((int) p_94699_, (int) p_94700_);
 		gunPartList.check((int) p_94699_, (int) p_94700_);
+		keyframeLine.check((int) p_94699_, (int) p_94700_);
 		return super.mouseDragged(p_94699_, p_94700_, p_94701_, p_94702_, p_94703_);
 	}
 
@@ -444,13 +501,60 @@ public class AnimationScreen extends Screen {
 	}
 
 	@Override
-	public boolean keyPressed(int p_96552_, int p_96553_, int p_96554_) {
-		return super.keyPressed(p_96552_, p_96553_, p_96554_);
+	public boolean keyPressed(int key, int p_96553_, int p_96554_) {
+		keys[key] = true;
+		if(model.getAnimation() != Animation.EMPTY) {
+			if(key == 261 && keyframeLine.getSelected() != -1) {
+				posList.cleanKeys();
+				rotList.cleanKeys();
+				model.getAnimation().removeKeyframe(keyframeLine.getSelected());
+			} else if(key == 341) {
+				ctrl = true;
+			}
+			if(keyframeLine.getSelected() != -1) {
+				if(keys[341] && keys[67]) {
+					kf = model.getAnimation().getKeyframes().get(keyframeLine.getSelected())
+						.copy();
+				} else if(keys[341] && keys[86]) {
+					if(kf != null) {
+						Keyframe selectedKeyframe = model.getAnimation()
+								.getKeyframes().get(keyframeLine.getSelected());
+						selectedKeyframe.pos = Keyframe.copyMap(kf.pos);
+						selectedKeyframe.rot = Keyframe.copyMap(kf.rot);
+						try {
+						String keyPosId = selectedKeyframe.pos.keySet().stream()
+								.findFirst().get();
+						String keyRotId = selectedKeyframe.rot.keySet().stream()
+								.findFirst().get();
+						edits.get(0).setValue(String.valueOf(selectedKeyframe
+								.getPos(keyPosId)[0]));
+						edits.get(1).setValue(String.valueOf(selectedKeyframe
+								.getPos(keyPosId)[1]));
+						edits.get(2).setValue(String.valueOf(selectedKeyframe
+								.getPos(keyPosId)[2]));
+						edits.get(3).setValue(String.valueOf(selectedKeyframe
+								.getPos(keyRotId)[0]));
+						edits.get(4).setValue(String.valueOf(selectedKeyframe
+								.getPos(keyRotId)[1]));
+						edits.get(5).setValue(String.valueOf(selectedKeyframe
+								.getPos(keyRotId)[2]));
+						} catch(NoSuchElementException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			}
+		}
+		return super.keyPressed(key, p_96553_, p_96554_);
 	}
 
 	@Override
 	public boolean keyReleased(int p_94715_, int p_94716_, int p_94717_) {
+		keys[p_94715_] = false;
 		((JgEditBox) edits.get(6)).onKeyRelease(p_94715_);
+		if(p_94715_ == 341) {
+			ctrl = false;
+		}
 		return super.keyReleased(p_94715_, p_94716_, p_94717_);
 	}
 
@@ -462,20 +566,22 @@ public class AnimationScreen extends Screen {
 		return Transform.EMPTY;
 	}
 
-	public float[] getVec(boolean rot) {
-		Keyframe kf = model.getAnimation().getKeyframes()[keyframeLine.getSelected()];
+	public void setVecVal(boolean rot, int i, float v) {
+		Keyframe kf = model.getAnimation().getKeyframes().get(keyframeLine.getSelected());
 		if (!rot) {
 			if (!kf.pos.isEmpty()) {
-				return kf.pos.get(posList.getSelectedKey().getKey());
-			} else {
-				return new float[] { 0, 0, 0 };
-			}
+				Key[] keys = posList.getSelectedKeys();
+				for(Key key : keys) {
+					kf.pos.get(key)[i] = v;
+				}
+			} 
 		} else {
 			if (!kf.rot.isEmpty()) {
-				return kf.rot.get(rotList.getSelectedKey().getKey());
-			} else {
-				return new float[] { 0, 0, 0 };
-			}
+				Key[] keys = rotList.getSelectedKeys();
+				for(Key key : keys) {
+					kf.rot.get(key)[i] = v;
+				}
+			} 
 		}
 	}
 
@@ -510,6 +616,10 @@ public class AnimationScreen extends Screen {
 
 	public GunModel getGunModel() {
 		return model;
+	}
+	
+	public KeyframeLineWidget getKeyframeLineWidget() {
+		return keyframeLine;
 	}
 
 	public JGSelectionList getGunPartList() {

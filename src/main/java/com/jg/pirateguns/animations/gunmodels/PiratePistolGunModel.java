@@ -1,12 +1,7 @@
 package com.jg.pirateguns.animations.gunmodels;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.jg.pirateguns.PirateGuns;
 import com.jg.pirateguns.animations.Animation;
 import com.jg.pirateguns.animations.Keyframe;
 import com.jg.pirateguns.animations.parts.GunModel;
@@ -14,7 +9,6 @@ import com.jg.pirateguns.animations.parts.GunModelPart;
 import com.jg.pirateguns.animations.serializers.AnimationSerializer;
 import com.jg.pirateguns.animations.serializers.KeyframeSerializer;
 import com.jg.pirateguns.client.handlers.ClientHandler;
-import com.jg.pirateguns.guns.GunItem;
 import com.jg.pirateguns.registries.ItemRegistries;
 import com.jg.pirateguns.utils.FileUtils;
 import com.jg.pirateguns.utils.NBTUtils;
@@ -25,9 +19,7 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -157,14 +149,7 @@ public class PiratePistolGunModel extends GunModel {
 	@Override
 	public void tick(Player player, ItemStack stack) {
 		super.tick(player, stack);
-		/*for(int i = 0; i < getGunParts().size(); i++) {
-			getGunParts().get(i).getTransform().pos[0] = 0;
-			getGunParts().get(i).getTransform().pos[1] = 0;
-			getGunParts().get(i).getTransform().pos[2] = 0;
-			getGunParts().get(i).getTransform().rot[0] = 0;
-			getGunParts().get(i).getTransform().rot[1] = 0;
-			getGunParts().get(i).getTransform().rot[2] = 0;
-		}*/
+
 		if(shouldUpdateAnimation) {
 			look = AnimationSerializer.deserialize(FileUtils.readFile("pirate_gun/lookAnim.jg"));
 			shouldUpdateAnimation = false;
@@ -211,22 +196,6 @@ public class PiratePistolGunModel extends GunModel {
 				
 			};
 		};*/
-		/*
-		if(getAnimation() != Animation.EMPTY) {
-			for(Keyframe kf : getAnimation().getKeyframes()) {
-				LogUtils.getLogger().info("Original Original Duration: " + kf.dur);
-			}
-		}*/
-		
-		//Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		//Animation anim = gson.fromJson(gson.toJson(look), Animation.class);
-		//animS.deserialize(animS.serialize(look));
-		//System.out.println("LookAnim Path: " + new ResourceLocation(PirateGuns.MODID, "animations/look_anim.json").getPath());
-		//System.out.println(animS.serialize(look));
-		//animS.deserialize(animS.serialize(look));
-		//;
-		/*System.out.println(animS.deserialize(animS.serialize(look)).getDuration());
-		System.out.println("look: " + look.getDuration());*/
 		
 		if(hasChanges) {
 			if(NBTUtils.getLoaded(stack)) {
@@ -262,7 +231,6 @@ public class PiratePistolGunModel extends GunModel {
 	public void reload(Player player, ItemStack stack) {
 		markChanges();
 		setAnimation(look);
-		LogUtils.getLogger().info("reload");
 	}
 
 	@Override

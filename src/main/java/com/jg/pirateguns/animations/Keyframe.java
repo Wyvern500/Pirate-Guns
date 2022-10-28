@@ -4,14 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.jg.pirateguns.animations.parts.GunModel;
-
 public class Keyframe {
 
 	public int dur;
 	public int startTick;
-	public final Map<String, float[]> pos;
-	public final Map<String, float[]> rot;
+	public Map<String, float[]> pos;
+	public Map<String, float[]> rot;
 	
 	public Keyframe(int dur) {
 		this.dur = dur;
@@ -82,7 +80,7 @@ public class Keyframe {
 		return new Keyframe(this.dur, this.startTick, copyMap(pos), copyMap(rot));
 	}
 	
-	public Map<String, float[]> copyMap(Map<String, float[]> map){
+	public static Map<String, float[]> copyMap(Map<String, float[]> map){
 		Map<String, float[]> newmap = new HashMap<>();
 		for(Entry<String, float[]> entry : map.entrySet()) {
 			float[] original = entry.getValue();

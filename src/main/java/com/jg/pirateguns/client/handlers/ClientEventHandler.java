@@ -4,7 +4,6 @@ import org.lwjgl.glfw.GLFW;
 
 import com.jg.pirateguns.PirateGuns;
 import com.jg.pirateguns.animations.gunmodels.PiratePistolGunModel;
-import com.jg.pirateguns.animations.parts.GunModel;
 import com.jg.pirateguns.client.events.RegisterGunModelsEvent;
 import com.jg.pirateguns.client.models.entities.CanonModel;
 import com.jg.pirateguns.client.rendering.entities.CanonRenderer;
@@ -23,15 +22,15 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.client.ClientRegistry;
-import net.minecraftforge.client.event.ModelRegistryEvent;
-import net.minecraftforge.client.event.RenderHandEvent;
 import net.minecraftforge.client.event.EntityRenderersEvent.RegisterLayerDefinitions;
 import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.client.event.ModelBakeEvent;
+import net.minecraftforge.client.event.ModelRegistryEvent;
+import net.minecraftforge.client.event.RenderHandEvent;
 import net.minecraftforge.client.model.ForgeModelBakery;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent.ClientTickEvent;
@@ -39,6 +38,7 @@ import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedOutEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.registries.ForgeRegistries;
 
 public class ClientEventHandler {
 	
@@ -140,11 +140,14 @@ public class ClientEventHandler {
 	private static void clientTick(ClientTickEvent e) {
 		if(e.phase == Phase.START) {
 			Player player = Minecraft.getInstance().player;
-			if(!client.init) {
-				MinecraftForge.EVENT_BUS.post(new RegisterGunModelsEvent());
-				client.init = true;
-			}
 			if(player != null) {
+				if(!client.init) {
+					LogUtils.getLogger().info("posting event");
+					LogUtils.getLogger().info("" + ForgeRegistries.ITEMS.getValue(
+							new ResourceLocation(Paths.PP)).getRegistryName().toString());
+					MinecraftForge.EVENT_BUS.post(new RegisterGunModelsEvent());
+					client.init = true;
+				}
 				ItemStack stack = player.getMainHandItem();
 				if(stack.getItem() instanceof GunItem) {
 					client.tick();
@@ -170,22 +173,34 @@ public class ClientEventHandler {
 	
 	private static void handleKeyboard(InputEvent.KeyInputEvent e) {
 		Screen screen = Minecraft.getInstance().screen;
-		if(screen == null || screen instanceof AnimationScreen) {
+		if(screen == null || screen instanceof AnimationScreen || screen instanceof GunPartsScreen) {
 			boolean animEditFocused = false;
 			if(screen instanceof AnimationScreen) {
 				animEditFocused = ((AnimationScreen)screen).getEditBoxes().get(6).isFocused(); 
 			}
 			if(animEditFocused) return;
-			if(e.getAction() == GLFW.GLFW_PRESS) {
+			//if(e.getAction() == GLFW.GLFW_PRESS) {
 				Player player = Minecraft.getInstance().player;
 				if(player != null) {
 					ItemStack stack = player.getMainHandItem();
 					if(stack.getItem() instanceof GunItem) {
 						if(client.getGunModel() == null) return;
-						if(RELOAD.getKey().getValue() == e.getKey()) {
-							PirateGuns.channel.sendToServer(new LoadBulletMessage(true));
-							client.getGunModel().reload(player, stack);
-						}else if(LEFT.getKey().getValue() == e.getKey()) {
+						if(e.getAction() == GLFW.GLFW_PRESS) {
+							if(RELOAD.getKey().getValue() == e.getKey()) {
+								PirateGuns.channel.sendToServer(new LoadBulletMessage(true));
+								client.getGunModel().reload(player, stack);
+							} else if(H.getKey().getValue() == e.getKey()) {
+								client.left();
+							} else if(J.getKey().getValue() == e.getKey()) {
+								client.right();
+							} if(47 == e.getKey() && Minecraft.getInstance().screen == null) {
+								Minecraft.getInstance().setScreen(new GunPartsScreen(client.getGunModel())
+										.setAnimScreen());
+							} else if(SWITCH.getKey().getValue() == e.getKey()) {
+								client.switchRotationMode();
+							} 
+						}
+						if(LEFT.getKey().getValue() == e.getKey()) {
 							client.dec(0);
 						} else if(RIGHT.getKey().getValue() == e.getKey()) {
 							client.inc(0);
@@ -197,19 +212,10 @@ public class ClientEventHandler {
 							client.dec(2);
 						} else if(N.getKey().getValue() == e.getKey()) {
 							client.inc(2);
-						} else if(H.getKey().getValue() == e.getKey()) {
-							client.left();
-						} else if(J.getKey().getValue() == e.getKey()) {
-							client.right();
-						} else if(47 == e.getKey() && Minecraft.getInstance().screen == null) {
-							Minecraft.getInstance().setScreen(new GunPartsScreen(client.getGunModel())
-									.setAnimScreen());
-						} else if(SWITCH.getKey().getValue() == e.getKey()) {
-							client.switchRotationMode();
-						} 
+						}
 					}
 				}
-			}
+			//}
 		}
 	}
 	

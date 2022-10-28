@@ -5,11 +5,9 @@ import com.jg.pirateguns.client.models.entities.CanonModel;
 import com.jg.pirateguns.entities.Canon;
 import com.mojang.blaze3d.vertex.PoseStack;
 
-import net.minecraft.client.model.geom.LayerDefinitions;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.entity.MobRenderer;
-import net.minecraft.client.renderer.entity.ZombieRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider.Context;
+import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.resources.ResourceLocation;
 
 public class CanonRenderer extends MobRenderer<Canon, CanonModel> {

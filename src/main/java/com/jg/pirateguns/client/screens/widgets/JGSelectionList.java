@@ -1,18 +1,16 @@
 package com.jg.pirateguns.client.screens.widgets;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.jg.pirateguns.client.screens.AnimationScreen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.logging.LogUtils;
-import com.mojang.math.Matrix4f;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -25,7 +23,7 @@ import net.minecraft.util.Mth;
 public class JGSelectionList extends GuiComponent implements Widget {
 
 	public static final Key EMPTYKEY = new Key(Minecraft.getInstance().font, "empty");
-	
+
 	protected Screen screen;
 	protected Font font;
 	protected boolean visible;
@@ -33,7 +31,8 @@ public class JGSelectionList extends GuiComponent implements Widget {
 	protected int colHeight;
 	protected int colWidth;
 	protected int cols;
-	protected int selected;
+	// protected int selected;
+	protected List<Integer> selected;
 	protected int x;
 	protected int y;
 	protected int from;
@@ -44,10 +43,10 @@ public class JGSelectionList extends GuiComponent implements Widget {
 	protected int scrollY;
 	protected int offset;
 	protected onSelectKey onSelectKey;
-	
-	public JGSelectionList(Key[] keys, Screen screen, Font font, 
-			int x, int y, int colWidth, int colHeight, int cols, onSelectKey onSelectKey) {
-		this.keys = Arrays.asList(keys);
+
+	public JGSelectionList(Key[] keys, Screen screen, Font font, int x, int y, int colWidth, int colHeight, int cols,
+			onSelectKey onSelectKey) {
+		this.keys = new ArrayList<Key>(Arrays.asList(keys));
 		this.screen = screen;
 		this.font = font;
 		this.visible = true;
@@ -56,11 +55,25 @@ public class JGSelectionList extends GuiComponent implements Widget {
 		this.colWidth = colWidth;
 		this.colHeight = colHeight;
 		this.cols = cols;
-		this.selected = -1;
+		// this.selected = -1;
+		this.selected = new ArrayList<>();
 		this.from = 0;
 		this.to = this.cols > this.keys.size() ? this.keys.size() : this.cols;
-		this.hideItems = this.keys.size() - this.cols;
-		this.scrollHeight = (int) Mth.lerp((float) this.hideItems / this.keys.size(), this.colHeight * this.cols, 0);
+		this.hideItems = (this.keys.size() - this.cols) < 0 ? 0 : this.keys.size() - this.cols;
+		try {
+			if(this.hideItems != 0) {
+				LogUtils.getLogger().info("HideItems: " + this.hideItems + 
+						" keys size: " + this.keys.size() + " hideItems/keys size: " + 
+						((float)this.hideItems/this.keys.size()) + " other: " + 
+						(1 - (((float)this.hideItems / this.keys.size()) == 0 ? 1 : 
+							(float)this.hideItems / this.keys.size())) );
+				this.scrollHeight = (int) Mth.lerp(1 - (((float)this.hideItems / 
+						this.keys.size()) == 0 ? 1 : (float)this.hideItems / 
+								this.keys.size()), 0, this.colHeight * this.cols);
+			}
+		} catch (ArithmeticException e) {
+			e.printStackTrace();
+		}
 		this.scrollWidth = 7;
 		this.scrollY = this.y;
 		this.offset = 0;
@@ -83,7 +96,7 @@ public class JGSelectionList extends GuiComponent implements Widget {
 				renderKey(i, matrix, bufferbuilder, tesselator);
 			}
 
-			if(this.cols < this.keys.size()) {
+			if (this.cols < this.keys.size()) {
 				renderScrollbar(bufferbuilder, tesselator);
 			}
 		}
@@ -125,7 +138,7 @@ public class JGSelectionList extends GuiComponent implements Widget {
 		tesselator.end();
 
 		float nw2 = 7;
-		float nh2 = Mth.lerp((float) this.hideItems / this.keys.size(), this.colHeight * this.cols, 0);
+		float nh2 = this.scrollHeight;
 		float nx2 = this.x + this.colWidth;
 		float ny2 = this.scrollY;
 
@@ -141,49 +154,50 @@ public class JGSelectionList extends GuiComponent implements Widget {
 	}
 
 	protected void renderKey(int i, PoseStack matrix, BufferBuilder bufferbuilder, Tesselator tesselator) {
-		if(keys.size() > 0) {
-		float f = 0.5f;
-		float nw = this.colWidth;
-		float nh = this.colHeight;
-		float nx = this.x;
-		float ny = (this.y)+((i-this.from)*this.colHeight);
+		if (keys.size() > 0) {
+			float f = 0.5f;
+			float nw = this.colWidth;
+			float nh = this.colHeight;
+			float nx = this.x;
+			float ny = (this.y) + ((i - this.from) * this.colHeight);
 
-		if (i == selected) {
-			RenderSystem.disableTexture();
-			RenderSystem.setShader(GameRenderer::getPositionShader);
-			RenderSystem.setShaderColor(f, f, f, 1F);
-			bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
-			bufferbuilder.vertex(nx - 1, (nh + 2) + ny - 1, 0).endVertex();
-			bufferbuilder.vertex((nw + 2) + nx - 1, (nh + 2) + ny - 1, 0).endVertex();
-			bufferbuilder.vertex((nw + 2) + nx - 1, ny - 1, 0).endVertex();
-			bufferbuilder.vertex(nx - 1, ny - 1, 0).endVertex();
-			tesselator.end();
+			if (selected.contains(i)) {
+				RenderSystem.disableTexture();
+				RenderSystem.setShader(GameRenderer::getPositionShader);
+				RenderSystem.setShaderColor(f, f, f, 1F);
+				bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+				bufferbuilder.vertex(nx - 1, (nh + 2) + ny - 1, 0).endVertex();
+				bufferbuilder.vertex((nw + 2) + nx - 1, (nh + 2) + ny - 1, 0).endVertex();
+				bufferbuilder.vertex((nw + 2) + nx - 1, ny - 1, 0).endVertex();
+				bufferbuilder.vertex(nx - 1, ny - 1, 0).endVertex();
+				tesselator.end();
 
-			RenderSystem.setShader(GameRenderer::getPositionShader);
-			RenderSystem.setShaderColor(0F, 0F, 0F, 1F);
-			bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
-			bufferbuilder.vertex(nx, nh + ny, 0).endVertex();
-			bufferbuilder.vertex(nw + nx, nh + ny, 0).endVertex();
-			bufferbuilder.vertex(nw + nx, ny, 0).endVertex();
-			bufferbuilder.vertex(nx, ny, 0).endVertex();
-			tesselator.end();
-			RenderSystem.enableTexture();
-		}
-		font.drawShadow(matrix, keys.get(i).key, nx + (30 - (font.width(keys.get(i).key) / 2)), ny + 4, 16777215);
+				RenderSystem.setShader(GameRenderer::getPositionShader);
+				RenderSystem.setShaderColor(0F, 0F, 0F, 1F);
+				bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+				bufferbuilder.vertex(nx, nh + ny, 0).endVertex();
+				bufferbuilder.vertex(nw + nx, nh + ny, 0).endVertex();
+				bufferbuilder.vertex(nw + nx, ny, 0).endVertex();
+				bufferbuilder.vertex(nx, ny, 0).endVertex();
+				tesselator.end();
+				RenderSystem.enableTexture();
+			}
+			font.drawShadow(matrix, keys.get(i).key, nx + (30 - (font.width(keys.get(i).key) / 2)), ny + 4, 16777215);
 		}
 	}
 
 	public void check(int mouseX, int mouseY) {
-		if(this.cols < this.keys.size()) {
+		if (this.cols < this.keys.size()) {
 			if (mouseX > this.x + (this.colWidth) && mouseX < (this.x + (this.colWidth)) + this.scrollWidth
 					&& mouseY > this.y && mouseY < this.y + (this.cols * this.colHeight)) {
-				this.scrollY = mouseY - (this.scrollHeight/2);
-				this.wrapeScrollY();
+				this.scrollY = mouseY - (this.scrollHeight / 2);
+				this.wrapScrollY();
 				float part1 = (((float) this.y) - ((float) this.scrollY));
 				float part2 = (((float) (this.cols * this.colHeight) - (float) this.scrollHeight));
-				this.offset = Mth.floor(Mth.abs(Mth.lerp(part1 / part2, 0, this.keys.size() - this.cols)));
+				this.offset = Mth.floor(Mth.abs(Mth.lerp(part1 / part2, 0, 
+						this.keys.size() - this.cols)));
 				this.from = 0 + this.offset;
-				if(this.cols > this.keys.size()) {
+				if (this.cols > this.keys.size()) {
 					this.to = this.keys.size();
 				} else {
 					this.to = this.cols + offset;
@@ -193,55 +207,95 @@ public class JGSelectionList extends GuiComponent implements Widget {
 	}
 
 	public void tick() {
-		
+
 	}
 
 	public void setKeys(Key[] keys) {
-		this.keys = Arrays.asList(keys);
+		this.keys = new ArrayList<Key>(Arrays.asList(keys));
 		update();
+		LogUtils.getLogger().info("Keys length: " + keys.length);
 	}
-	
+
 	public void addKey(Key key) {
-		 keys.add(key);
-		 update();
+		if (key != null) {
+			key.cols = this.cols;
+			key.colWidth = this.colWidth;
+			try {
+				if (key != null) {
+					LogUtils.getLogger().info("Key not null");
+				}
+				keys.add(key);
+			} catch (UnsupportedOperationException e) {
+				e.printStackTrace();
+			}
+			update();
+		} else {
+			LogUtils.getLogger().info("Key == null");
+		}
 	}
-	
+
 	public void removeKey(Key key) {
 		keys.remove(key);
+		update();
 	}
-	
+
 	public void removeKey(int index) {
 		keys.remove(index);
+		update();
 	}
-	
+
 	public void update() {
 		this.from = 0;
 		this.to = this.cols > this.keys.size() ? this.keys.size() : this.cols;
+		LogUtils.getLogger().info("hideItems: " + hideItems + " keys size: " + keys.size() + " div: "
+				+ (this.hideItems / this.keys.size()));
 		this.hideItems = (this.keys.size() - this.cols) < 0 ? 0 : this.keys.size() - this.cols;
+		try {
+			this.scrollHeight = (int) Mth.lerp(1 - (((float)this.hideItems / 
+					this.keys.size()) == 0 ? 1 : (float)this.hideItems / 
+							this.keys.size()), 0, this.colHeight * this.cols);
+		} catch (ArithmeticException e) {
+			e.printStackTrace();
+		}
 	}
 
-	public void onClick(int mouseX, int mouseY) {
-		this.scrollWidth = 7;
+	public void onClick(int mouseX, int mouseY, boolean ctrlDown) {
 		for (int i = this.from; i < this.to; i++) {
 			int rcoly = (this.y) + ((i - this.from) * this.colHeight);
 			if (mouseX > this.x && mouseX < (this.x + this.colWidth - this.scrollWidth)) {
 				if (mouseY > rcoly && mouseY < rcoly + this.colHeight) {
-					this.selected = i;
-					onSelectKey.onSelectKey(getSelectedKey(), i);
+					if (selected.contains(i)) {
+						if (ctrlDown) {
+							if (selected.contains(i)) {
+								selected.remove(i);
+							}
+						} else {
+							selected.clear();
+						}
+					} else {
+						if (ctrlDown) {
+							selected.add(i);
+							onSelectKey.onSelectKey(getSelectedKey(), i);
+						} else {
+							selected.clear();
+							selected.add(i);
+							onSelectKey.onSelectKey(getSelectedKey(), i);
+						}
+					}
 				}
 			}
 		}
 	}
 
 	public void onScroll(float delta) {
-		if(this.cols < this.keys.size()) {
+		if (this.cols < this.keys.size() && this.hideItems != 0) {
 			this.scrollY += delta * 0.1f;
-			this.wrapeScrollY();
+			this.wrapScrollY();
 			float part1 = (((float) this.y) - ((float) this.scrollY));
 			float part2 = (((float) (this.cols * this.colHeight) - (float) this.scrollHeight));
 			this.offset = Mth.floor(Mth.abs(Mth.lerp(part1 / part2, 0, this.keys.size() - this.cols)));
 			this.from = 0 + this.offset;
-			if(this.cols > this.keys.size()) {
+			if (this.cols > this.keys.size()) {
 				this.to = this.keys.size();
 			} else {
 				this.to = this.cols + offset;
@@ -249,35 +303,77 @@ public class JGSelectionList extends GuiComponent implements Widget {
 		}
 	}
 
-	public void wrapeScrollY() {
+	public void wrapScrollY() {
 		if (this.scrollY <= this.y) {
 			this.scrollY = this.y;
+			LogUtils.getLogger().info("SAds");
 		}
-		if (this.scrollY + this.scrollHeight >= (this.y + this.cols * this.colHeight)) {
-			this.scrollY = (this.y + this.cols * this.colHeight) - this.scrollHeight;
+		if (this.scrollY + this.scrollHeight > (this.y + (this.cols * this.colHeight))) {
+			this.scrollY = (this.y + (this.cols * this.colHeight)) - this.scrollHeight;
+			LogUtils.getLogger().info("SAds2");
 		}
+		LogUtils.getLogger().info("x: " + this.x + " scrollY: " + this.scrollY + " scrollHeight: " + scrollHeight
+				+ " su: " + (this.y + (this.cols * this.colHeight)));
 	}
-	
-	public int getSelected() {
+
+	public int getKeysSize() {
+		return keys.size();
+	}
+
+	/*
+	 * public int getSelected() { return selected; }
+	 */
+
+	public List<Integer> getSelectedIndexes() {
 		return selected;
 	}
-	
+
+	public void setSelectedIndexes(List<Integer> indexes) {
+		this.selected = indexes;
+	}
+
 	public Key getSelectedKey() {
-		if(keys.size() > 0 && selected > -1) {
-			return keys.get(this.selected);
+		if (keys.size() > 0 && !selected.isEmpty()) {
+			try {
+				return keys.get(this.selected.get(0));
+			} catch (IndexOutOfBoundsException e) {
+				e.printStackTrace();
+			}
+			return EMPTYKEY;
 		} else {
 			return EMPTYKEY;
 		}
 	}
-	
-	public void cleanKeys() {
-		keys.clear();;
+
+	public Key[] getSelectedKeys() {
+		if (keys.size() > 0 && !selected.isEmpty()) {
+			Key[] newKeys = new Key[selected.size()];
+			for (int i = 0; i < selected.size(); i++) {
+				newKeys[i] = keys.get(i);
+			}
+			try {
+				return newKeys;
+			} catch (IndexOutOfBoundsException e) {
+				e.printStackTrace();
+			}
+			return new Key[0];
+		} else {
+			return new Key[0];
+		}
 	}
-	
+
+	public List<Key> getKeys() {
+		return keys;
+	}
+
+	public void cleanKeys() {
+		keys.clear();
+	}
+
 	public static interface onSelectKey {
 		public void onSelectKey(Key key, int index);
 	}
-	
+
 	public static class Key {
 
 		protected String key;
@@ -297,7 +393,7 @@ public class JGSelectionList extends GuiComponent implements Widget {
 		public String getKey() {
 			return key;
 		}
-		
+
 	}
 
 }

@@ -8,9 +8,7 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.Snowball;
-import net.minecraft.world.item.SnowballItem;
 import net.minecraftforge.network.NetworkEvent.Context;
 
 public class ShootCanonBallMessage {

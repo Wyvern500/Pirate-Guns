@@ -3,7 +3,6 @@ package com.jg.pirateguns.network;
 import java.util.function.Supplier;
 
 import com.jg.pirateguns.entities.GunBullet;
-import com.jg.pirateguns.utils.NBTUtils;
 import com.mojang.logging.LogUtils;
 
 import net.minecraft.network.FriendlyByteBuf;

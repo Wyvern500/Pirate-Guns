@@ -1,14 +1,10 @@
 package com.jg.pirateguns.animations;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.jg.pirateguns.PirateGuns;
 import com.jg.pirateguns.animations.parts.GunModel;
 import com.jg.pirateguns.animations.parts.GunModelPart;
 import com.jg.pirateguns.client.handlers.ClientHandler;
@@ -19,8 +15,6 @@ import com.mojang.logging.LogUtils;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -31,7 +25,7 @@ public class Animation {
 	
 	protected GunModel model;
 	
-	protected Keyframe[] keyframes;
+	protected List<Keyframe> keyframes;
 	protected String name;
 	protected Keyframe prevFrame;
 	protected Keyframe currentFrame;
@@ -53,27 +47,29 @@ public class Animation {
 		this.name = name;
 		assert keyframes.length >= 1;
 		if(gunModelItem != null) {
+			LogUtils.getLogger().info("gunModelItem: " + gunModelItem);
 			this.model = GunModelsHandler.get(ForgeRegistries.ITEMS.getValue(
 					new ResourceLocation(gunModelItem)));
-			System.out.println("out");
+			LogUtils.getLogger().info(ForgeRegistries.ITEMS.getValue(
+					new ResourceLocation(gunModelItem)).getRegistryName().toString());
 			if(this.model != null) {
 				System.out.println("not null");
-				this.keyframes = new Keyframe[keyframes.length+1];
+				this.keyframes = new ArrayList<>();
 				Keyframe cero = new Keyframe(0);
 				for(GunModelPart part : model.getGunParts()) {
 					cero.addPos(part.getName(), part.getTransform().pos);
 					cero.addRot(part.getName(), part.getTransform().rot);
 				}
-				this.keyframes[0] = cero;
+				this.keyframes.add(cero);
 				int totalDur = 0;
-				for(int i = 1; i < this.keyframes.length; i++) {
-					this.keyframes[i] = keyframes[i-1];
-					totalDur += this.keyframes[i].dur;
-					this.keyframes[i].startTick = totalDur;
+				for(int i = 1; i < keyframes.length; i++) {
+					this.keyframes.add(keyframes[i-1]);
+					totalDur += this.keyframes.get(i).dur;
+					this.keyframes.get(i).startTick = totalDur;
 				}
 				calculateDur();
-				this.prevFrame = this.keyframes[0].copy();
-				this.currentFrame = this.keyframes[1].copy();
+				this.prevFrame = this.keyframes.get(0).copy();
+				this.currentFrame = this.keyframes.get(1).copy();
 				this.outFrame = new Keyframe(0);
 				this.MAX = currentFrame.dur;
 			} else {
@@ -104,7 +100,7 @@ public class Animation {
 				part.getTransform().setRot(outFrame.getRot(part.getName()));
 			}
 		} else {
-			if(current < keyframes.length-1 && model.canPlayAnimation()) {
+			if(current < keyframes.size()-1 && model.canPlayAnimation()) {
 				nextKeyframe();
 			} else if(model.canPlayAnimation()){
 				finished = true;
@@ -170,6 +166,7 @@ public class Animation {
 	}
 	
 	public void calculateDur() {
+		dur = 0;
 		for(Keyframe keyframe : keyframes) {
 			dur += keyframe.dur;
 		}
@@ -178,20 +175,20 @@ public class Animation {
 	
 	public void nextDebugKeyframe() {
 		current++;
-		MAX = keyframes[current].dur;
+		MAX = keyframes.get(current).dur;
 		prev = prog = MAX;
-		this.currentFrame = keyframes[current].copy();
-		this.prevFrame = keyframes[current-1].copy();
+		this.currentFrame = keyframes.get(current).copy();
+		this.prevFrame = keyframes.get(current-1).copy();
 		LogUtils.getLogger().info("Current++");
 		onStartKeyframe();
 	}
 	
 	public void nextKeyframe() {
 		current++;
-		MAX = keyframes[current].dur;
+		MAX = keyframes.get(current).dur;
 		prev = prog = 0;
-		this.currentFrame = keyframes[current].copy();
-		this.prevFrame = keyframes[current-1].copy();
+		this.currentFrame = keyframes.get(current).copy();
+		this.prevFrame = keyframes.get(current-1).copy();
 		LogUtils.getLogger().info("Current++");
 		onStartKeyframe();
 	}
@@ -200,10 +197,10 @@ public class Animation {
 		current--;
 		if(current < 0) {
 			current = 1;
-			MAX = keyframes[current].dur;
+			MAX = keyframes.get(current).dur;
 			prev = prog = MAX;
-			this.currentFrame = keyframes[current].copy();
-			this.prevFrame = keyframes[current-1].copy();
+			this.currentFrame = keyframes.get(current).copy();
+			this.prevFrame = keyframes.get(current-1).copy();
 			LogUtils.getLogger().info("Current--");
 			onStartKeyframe();
 		}
@@ -213,10 +210,10 @@ public class Animation {
 		current--;
 		if(current < 0) {
 			current = 1;
-			MAX = keyframes[current].dur;
+			MAX = keyframes.get(current).dur;
 			prev = prog = 0;
-			this.currentFrame = keyframes[current].copy();
-			this.prevFrame = keyframes[current-1].copy();
+			this.currentFrame = keyframes.get(current).copy();
+			this.prevFrame = keyframes.get(current-1).copy();
 			LogUtils.getLogger().info("Current--");
 			onStartKeyframe();
 		}
@@ -235,7 +232,11 @@ public class Animation {
 	}
 	
 	public void onFinish() {
-		
+		Screen screen = Minecraft.getInstance().screen;
+		if(screen instanceof AnimationScreen) {
+			AnimationScreen animScreen = (AnimationScreen)screen;
+			animScreen.getKeyframeLineWidget().setKeyframes(null);
+		}
 	}
 	
 	private float getProgress() {
@@ -246,12 +247,12 @@ public class Animation {
 	}
 	
 	public void reset() {
-		if(model == null)return;
+		if(model == null || keyframes.size() < 2)return;
 		this.prog = 0;
 		this.prev = 0;
 		this.current = 1;
-		this.prevFrame = keyframes[0].copy();
-		this.currentFrame = keyframes[1].copy();
+		this.prevFrame = keyframes.get(0).copy();
+		this.currentFrame = keyframes.get(1).copy();
 		this.outFrame = new Keyframe(0);
 		this.MAX = currentFrame.dur;
 		finished = false;
@@ -265,12 +266,31 @@ public class Animation {
 		this.model = model;
 	}
 
-	public Keyframe[] getKeyframes() {
+	public List<Keyframe> getKeyframes() {
 		return keyframes;
 	}
 
-	public void setKeyframes(Keyframe[] keyframes) {
+	public void setKeyframes(List<Keyframe> keyframes) {
 		this.keyframes = keyframes;
+	}
+	
+	public void addKeyframe(Keyframe kf) {
+		keyframes.add(kf);
+		calculateDur();
+	}
+
+	public void removeKeyframe(int key) {
+		keyframes.remove(key);
+		calculateDur();
+	}
+	
+	public void removeKeyframe(Keyframe keyframe) {
+		int index = keyframes.indexOf(keyframe);
+		if(index == -1) {
+			LogUtils.getLogger().error("Index is -1");
+			return;
+		}
+		keyframes.remove(index);
 	}
 
 	public String getName() {

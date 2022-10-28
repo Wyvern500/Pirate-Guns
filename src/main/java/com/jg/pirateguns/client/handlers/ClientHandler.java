@@ -2,22 +2,16 @@ package com.jg.pirateguns.client.handlers;
 
 import com.jg.pirateguns.animations.parts.GunModel;
 import com.jg.pirateguns.animations.parts.GunModelPart;
-import com.jg.pirateguns.client.rendering.RenderHelper;
 import com.jg.pirateguns.utils.Utils;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
-import com.mojang.math.Quaternion;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.block.model.ItemTransforms.TransformType;
-import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.Vec3;
 
 public class ClientHandler {
 	

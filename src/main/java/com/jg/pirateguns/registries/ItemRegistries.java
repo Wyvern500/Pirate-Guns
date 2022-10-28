@@ -3,7 +3,6 @@ package com.jg.pirateguns.registries;
 import java.util.function.Supplier;
 
 import com.jg.pirateguns.PirateGuns;
-import com.jg.pirateguns.guns.GunItem;
 import com.jg.pirateguns.items.PiratePistol;
 
 import net.minecraft.world.item.Item;

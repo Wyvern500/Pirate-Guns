@@ -1,7 +1,5 @@
 package com.jg.pirateguns.client.handlers;
 
-import com.mojang.logging.LogUtils;
-
 public class RecoilHandler extends BasicHandler {
 
 	private float progD, prevD, MAXD;

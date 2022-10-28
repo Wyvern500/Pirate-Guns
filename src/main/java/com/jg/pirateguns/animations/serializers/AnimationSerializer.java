@@ -6,15 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.jg.pirateguns.animations.Animation;
 import com.jg.pirateguns.animations.Keyframe;
-import com.jg.pirateguns.client.handlers.GunModelsHandler;
-import com.mojang.logging.LogUtils;
 
 public class AnimationSerializer {
 
