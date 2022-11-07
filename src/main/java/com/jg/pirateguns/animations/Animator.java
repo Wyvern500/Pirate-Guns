@@ -198,7 +198,8 @@ public class Animator {
         }
     	float prosTick = this.tick - kf.startTick;
         float prosPrevTick = this.prevTick - kf.startTick;
-    	this.prog = (prosPrevTick + (prosTick - prosPrevTick) * ClientHandler.partialTicks) / kf.dur;
+    	this.prog = (prosPrevTick + (prosTick - prosPrevTick) 
+    			* ClientHandler.partialTicks) / kf.dur;
     	if(this.tick-kf.startTick == kf.dur){
             this.prog = 1.0f;
         }
@@ -220,8 +221,9 @@ public class Animator {
 				e.printStackTrace();
 			}
         	LogUtils.getLogger().info("Name: " + part.getName() + " transform: " + 
-        			part.getTransform().toString() + " currentTransform: " + 
-        			Arrays.toString(this.currentTranslations.get(part)) + 
+        			part.getTransform().toString() + " part1: " 
+        			+ Arrays.toString(part1) + " part2: " + Arrays.toString(part2) +
+        			" currentTransform: " + Arrays.toString(this.currentTranslations.get(part)) + 
         			" lerp values: x: " + Mth.lerp(prog, part1[0], 
                 			part2[0]) + " y: " + Mth.lerp(prog, part1[1], 
                         			part2[1]) + " z: " + Mth.lerp(prog, part1[2], 
@@ -263,7 +265,7 @@ public class Animator {
 		this.prevTick = tick;
 		this.tick -= 1;
 		Keyframe kf = this.animation.keyframes.get(current);
-    	if(this.tick-kf.startTick > kf.dur){
+    	if(this.tick-kf.startTick <= -1){
             this.currentTranslations = kf.translations;
             this.currentRotations = kf.rotations;
             this.prevStartTick = kf.startTick;
@@ -295,8 +297,9 @@ public class Animator {
 				e.printStackTrace();
 			}
         	LogUtils.getLogger().info("Name: " + part.getName() + " transform: " + 
-        			part.getTransform().toString() + " currentTransform: " + 
-        			Arrays.toString(this.currentTranslations.get(part)) + 
+        			part.getTransform().toString() + " part1: " 
+        			+ Arrays.toString(part1) + " part2: " + Arrays.toString(part2) +
+        			" currentTransform: " + Arrays.toString(this.currentTranslations.get(part)) + 
         			" lerp values: x: " + Mth.lerp(prog, part1[0], 
                 			part2[0]) + " y: " + Mth.lerp(prog, part1[1], 
                         			part2[1]) + " z: " + Mth.lerp(prog, part1[2], 
@@ -310,20 +313,46 @@ public class Animator {
         	float[] part1 = this.prevRotations.get(part);
         	float[] part2 = this.currentRotations.get(part);
         	try {
-        		part.getTransform().pos[0] = PGMath.rotLerp(prog, part1[0], 
+        		part.getTransform().rot[0] = PGMath.rotLerp(prog, part1[0], 
             			part2[0]);
-            	part.getTransform().pos[1] = PGMath.rotLerp(prog, part1[1], part2[1]);
-            	part.getTransform().pos[2] = PGMath.rotLerp(prog, part1[2], part2[2]);
+            	part.getTransform().rot[1] = PGMath.rotLerp(prog, part1[1], part2[1]);
+            	part.getTransform().rot[2] = PGMath.rotLerp(prog, part1[2], part2[2]);
         	} catch (NullPointerException e) {
 				e.printStackTrace();
 			}
         }
         if(this.tick-kf.startTick <= -1){
         	this.current--;
-        	if(this.current < 0) {
+        	if(this.current <= 0) {
         		this.current = 0;
+        		this.prevTranslations = new HashMap<>();
+        		this.prevRotations = new HashMap<>();
+        		for(int i = 0; i < model.getGunParts().size(); i++){
+                    this.prevTranslations.put(model.getGunParts().get(i), 
+                    		new float[] { 0, 0, 0 });
+                    this.prevRotations.put(model.getGunParts().get(i), 
+                        new float[] { 0, 0, 0 });
+                }
+                this.currentTranslations = this.animation.keyframes.get(current)
+                    .translations;
+                this.currentRotations = this.animation.keyframes.get(current)
+                    .rotations;
+                LogUtils.getLogger().info("Current <= 0");
+        	} else if(current > 0){
+        		try {
+        		this.prevTranslations = this.animation.keyframes.get(current-1)
+        				.translations;
+        		this.prevRotations = this.animation.keyframes.get(current-1)
+        				.rotations;
+        		this.currentTranslations = this.animation.keyframes.get(current)
+                        .translations;
+                this.currentRotations = this.animation.keyframes.get(current)
+                        .rotations;
+        		} catch(IndexOutOfBoundsException e) {
+        			e.printStackTrace();
+        		}
+        		LogUtils.getLogger().info("Current > 0");
         	}
-        	this.updateCurrentMaps();
         }
         LogUtils.getLogger().info("Current: " + current + " tick: " + tick + 
         		" kf startTick: " + kf.startTick + " kf visualTick: " + kf.startVisualTick
