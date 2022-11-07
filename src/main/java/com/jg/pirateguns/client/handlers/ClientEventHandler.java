@@ -134,7 +134,7 @@ public class ClientEventHandler {
 	private static void registerGunModels(RegisterGunModelsEvent e) {
 		LogUtils.getLogger().info("Registering models");
 		// Registering GunModels
-		GunModelsHandler.register(ItemRegistries.PIRATEPISTOL.get(), new PiratePistolGunModel(client));
+		GunModelsHandler.register(Paths.PP, new PiratePistolGunModel(client));
 	}
 	
 	private static void clientTick(ClientTickEvent e) {
@@ -190,9 +190,9 @@ public class ClientEventHandler {
 								PirateGuns.channel.sendToServer(new LoadBulletMessage(true));
 								client.getGunModel().reload(player, stack);
 							} else if(H.getKey().getValue() == e.getKey()) {
-								client.left();
-							} else if(J.getKey().getValue() == e.getKey()) {
 								client.right();
+							} else if(J.getKey().getValue() == e.getKey()) {
+								client.left();
 							} if(47 == e.getKey() && Minecraft.getInstance().screen == null) {
 								Minecraft.getInstance().setScreen(new GunPartsScreen(client.getGunModel())
 										.setAnimScreen());
@@ -209,9 +209,9 @@ public class ClientEventHandler {
 						} else if(DOWN.getKey().getValue() == e.getKey()) {
 							client.dec(1);
 						} else if(M.getKey().getValue() == e.getKey()) {
-							client.dec(2);
-						} else if(N.getKey().getValue() == e.getKey()) {
 							client.inc(2);
+						} else if(N.getKey().getValue() == e.getKey()) {
+							client.dec(2);
 						}
 					}
 				}

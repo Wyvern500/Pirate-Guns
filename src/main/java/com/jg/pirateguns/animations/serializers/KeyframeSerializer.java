@@ -1,9 +1,15 @@
 package com.jg.pirateguns.animations.serializers;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import com.jg.pirateguns.animations.Keyframe;
+import com.jg.pirateguns.animations.parts.GunModel;
+import com.jg.pirateguns.animations.parts.GunModelPart;
+import com.jg.pirateguns.client.handlers.GunModelsHandler;
+import com.jg.pirateguns.utils.Utils;
+import com.mojang.logging.LogUtils;
 
 public class KeyframeSerializer {
 	
@@ -11,20 +17,20 @@ public class KeyframeSerializer {
 		String ser = "";
 		ser += "keyframe>start\n";
 		ser += "keyframe>dur=" + keyframe.dur + "\n";
-		ser += "keyframe>startTick=" + keyframe.startTick + "\n";
-		for(Entry<String, float[]> entry : keyframe.pos.entrySet()) {
-			ser += "keyframe>pos>" + entry.getKey() + "=" + vectorToString(entry.getValue()) + "\n";
+		for(Entry<GunModelPart, float[]> entry : keyframe.translations.entrySet()) {
+			ser += "keyframe>pos>" + entry.getKey().getName() + "=" + vectorToString(entry.getValue()) + "\n";
 		}
-		for(Entry<String, float[]> entry : keyframe.rot.entrySet()) {
-			ser += "keyframe>rot>" + entry.getKey() + "=" + vectorToString(entry.getValue()) + "\n";
+		for(Entry<GunModelPart, float[]> entry : keyframe.rotations.entrySet()) {
+			ser += "keyframe>rot>" + entry.getKey().getName() + "=" + vectorToString(entry.getValue()) + "\n";
 		}
 		ser += "keyframe>end\n";
 		return ser;
 	}
 	
-	public static Keyframe deserialize(String json) {
+	public static Keyframe deserialize(String json, String gunModel) {
 		Keyframe kf = new Keyframe(0);
 		String[] sData = json.split("\n");
+		GunModel model = GunModelsHandler.get(gunModel);
 		
 		for(int i = 0; i < sData.length; i++) {
 			String s = sData[i];
@@ -34,13 +40,15 @@ public class KeyframeSerializer {
 				String[] commands = conv[0].split(">");
 				
 				if(commands[1].equals("pos")) {
-					kf.pos.put(commands[2], getVectorFromString(conv[1]));
+					kf.translations.put(Utils.getGunPartByName(model, commands[2]), 
+							getVectorFromString(conv[1]));
 				} else if(commands[1].equals("rot")) {
-					kf.rot.put(commands[2], getVectorFromString(conv[1]));
+					kf.rotations.put(Utils.getGunPartByName(model, commands[2]), 
+							getVectorFromString(conv[1]));
+					LogUtils.getLogger().info("Vector: " + 
+							Arrays.toString(getVectorFromString(conv[1])));
 				} else if(commands[1].equals("dur")) {
 					kf.dur = Integer.parseInt(conv[1]);
-				} else if(commands[1].equals("startTick")) {
-					kf.startTick = Integer.parseInt(conv[1]);
 				}
 			}
 		}

@@ -87,6 +87,22 @@ public class Transform {
 		return t;
 	}
 	
+	public Transform lerpT(float p, float[] vec) {
+		Transform t = new Transform();
+		t.pos[0] = Mth.lerp(p, this.pos[0], vec[0]);
+		t.pos[1] = Mth.lerp(p, this.pos[1], vec[1]);
+		t.pos[2] = Mth.lerp(p, this.pos[2], vec[2]);
+		return t;
+	}
+	
+	public Transform lerpR(float p, float[] vec) {
+		Transform t = new Transform();
+		t.rot[0] = PGMath.rotLerp(p, this.rot[0], vec[0]);
+		t.rot[1] = PGMath.rotLerp(p, this.rot[1], vec[1]);
+		t.rot[2] = PGMath.rotLerp(p, this.rot[2], vec[2]);
+		return t;
+	}
+	
 	public Transform combine(Transform transform) {
 		Transform t = new Transform();
 		t.addPos(transform.pos);

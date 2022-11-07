@@ -1,15 +1,19 @@
 package com.jg.pirateguns.animations.parts;
 
 import java.util.List;
+import java.util.Map;
 
 import com.jg.pirateguns.PirateGuns;
 import com.jg.pirateguns.animations.Animation;
+import com.jg.pirateguns.animations.Animator;
 import com.jg.pirateguns.animations.Transform;
+import com.jg.pirateguns.animations.serializers.AnimationSerializer;
 import com.jg.pirateguns.client.handlers.ClientHandler;
 import com.jg.pirateguns.client.rendering.RenderHelper;
 import com.jg.pirateguns.client.screens.AnimationScreen;
 import com.jg.pirateguns.guns.GunItem;
 import com.jg.pirateguns.network.ShootMessage;
+import com.jg.pirateguns.utils.FileUtils;
 import com.jg.pirateguns.utils.PGMath;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
@@ -35,20 +39,27 @@ public abstract class GunModel {
 	
 	public GunItem gun;
 	
-	private Animation current;
+	protected Map<String, Animation> animations;
+	
+	protected Animator animator;
 	
 	protected boolean shouldUpdateAnimation;
 	protected boolean hasChanges;
 	protected boolean playAnimation;
 	protected boolean debugMode;
 	
-	public GunModel(GunModelPart[] gunModelParts, Item gun, ClientHandler client) {
+	public GunModel(GunModelPart[] gunModelParts, Item gun, ClientHandler client
+			, String[] animations) {
 		this.parts = gunModelParts;
 		this.gun = (GunItem)gun;
 		this.client = client;
-		this.current = Animation.EMPTY;
+		this.animator = new Animator(this);
 		this.hasChanges = true;
 		this.playAnimation = true;
+		/*for(String anim : animations) {
+			this.animations.put(anim, AnimationSerializer
+					.deserialize(FileUtils.readFile(anim)));
+		}*/
 	}
 	
 	// Transform
@@ -121,6 +132,11 @@ public abstract class GunModel {
 		return null;
 	}
 	
+	public void addAnimation(String name) {
+		animations.put(name, AnimationSerializer.deserialize(FileUtils
+				.readFile(name)));
+	}
+	
 	public void markChanges() {
 		hasChanges = true;
 		LogUtils.getLogger().info("Mark changes");
@@ -132,10 +148,8 @@ public abstract class GunModel {
 	
 	// Getters and setters
 	
-	public void setAnimation(Animation current) {
-		this.current = current;
-		this.current.reset();
-		current.onStart();
+	public void setAnimation(Animation anim) {
+		this.animator.setAnimation(anim);
 		if(Minecraft.getInstance().screen instanceof AnimationScreen) {
 			AnimationScreen screen = (AnimationScreen)Minecraft.getInstance().screen;
 			screen.initKeyframes();
@@ -143,7 +157,7 @@ public abstract class GunModel {
 	}
 	
 	public Animation getAnimation() {
-		return current;
+		return animator.getAnimation();
 	}
 	
 	public boolean canPlayAnimation() {
@@ -170,12 +184,23 @@ public abstract class GunModel {
 		this.debugMode = debugMode;
 	}
 	
+	public Animator getAnimator() {
+		return animator;
+	}
+	
 	// Abstract methods
 
 	public void tick(Player player, ItemStack stack) {
-		if(current != Animation.EMPTY) {
-			current.tick();
-		}
+		animator.update();
+		
+		/*if(shouldUpdateAnimation) {
+			if(getAnimation() != null) {
+				Animation anim = AnimationSerializer
+						.deserialize(FileUtils.readFile(getAnimation().getName()));
+				animator.getAnimation().set(anim);
+			}
+			shouldUpdateAnimation = false;
+		}*/
 	}
 	
 	public abstract void render(LocalPlayer player, ItemStack stack, MultiBufferSource buffer, PoseStack matrix, int light);

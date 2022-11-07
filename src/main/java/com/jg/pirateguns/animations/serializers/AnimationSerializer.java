@@ -1,13 +1,21 @@
 package com.jg.pirateguns.animations.serializers;
 
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.jg.pirateguns.animations.Animation;
 import com.jg.pirateguns.animations.Keyframe;
+import com.jg.pirateguns.animations.parts.GunModel;
+import com.jg.pirateguns.animations.parts.GunModelPart;
+
+import net.minecraft.client.Minecraft;
 
 public class AnimationSerializer {
 
@@ -15,10 +23,8 @@ public class AnimationSerializer {
 		String res = "";
 		res += "animation>start\n";
 		res += "animation>dur=" + anim.getDuration() + "\n";
-		res += "animation>gunModelItem=" + anim.getGunModelItem() + "\n";
 		res += "animation>name=\"" + anim.getName() + "\n";
-		res += "animation>current=" + anim.getCurrent() + "\n";
-		res += "animation>prog=" + anim.getProg() + "\n";
+		res += "animation>gunModel=\"" + anim.getGunModel() + "\n";
 		res += "animation>end\n";
 		for(Keyframe kf :anim.getKeyframes()) {
 			res += KeyframeSerializer.serialize(kf);
@@ -69,16 +75,54 @@ public class AnimationSerializer {
 						keyframe += s + "\n";
 					} else {
 						keyframe += "keyframe>end\n";
-						keyframes.add(KeyframeSerializer.deserialize(keyframe));
+						keyframes.add(KeyframeSerializer.deserialize(keyframe, 
+								anim.get("gunModel")));
 						keyframe = "";
 					}
 				}
 			}
-			return new Animation(anim.get("gunModelItem"), anim.get("name")+"Serialized", 
-					Arrays.copyOf(keyframes.toArray(), keyframes.size(), Keyframe[].class));
+			Animation animation = new Animation(anim.get("name"), anim.get("gunModel"),
+					Integer.parseInt(anim.get("dur")));
+			animation.setKeyframes(keyframes);
+			return animation;
 		} else {
-			return Animation.EMPTY;
+			return null;
 		}
+	}
+	
+	public static String serializeWithCode(Animation animation, GunModel model) {
+		String anim = "";
+		anim += " = new Animation(\"" + animation.getName() + "\", \"" 
+				+ animation.getGunModel() + "\")\n";
+		for(Keyframe kf : animation.getKeyframes()) {
+			anim += ".startKeyframe(" + kf.dur + ")\n";
+			for(Entry<GunModelPart, float[]> e : kf.translations.entrySet()) {
+				anim += ".translate(parts[" + getIndexForPart(e.getKey(), model)
+					+ "], " + e.getValue()[0] + "f, " + e.getValue()[1] + "f, " + 
+					e.getValue()[2] + "f)\n";
+			}
+			for(Entry<GunModelPart, float[]> e : kf.rotations.entrySet()) {
+				anim += ".rotate(parts[" + getIndexForPart(e.getKey(), model)
+					+ "], " + e.getValue()[0] + "f, " + e.getValue()[1] + "f, " + 
+					e.getValue()[2] + "f)\n";
+			}
+		}
+		anim += ".end();";
+		/*StringSelection stringSelection = new StringSelection(anim);
+		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		clipboard.setContents(stringSelection, null);*/
+		System.out.println(anim);
+		Minecraft.getInstance().keyboardHandler.setClipboard(anim);
+		return anim;
+	}
+	
+	public static int getIndexForPart(GunModelPart part, GunModel model) {
+		for(int i = 0; i < model.getGunParts().size(); i++) {
+			if(model.getGunParts().get(i).getName().equals(part.getName())) {
+				return i;
+			}
+		}
+		return -1;
 	}
 	
 }

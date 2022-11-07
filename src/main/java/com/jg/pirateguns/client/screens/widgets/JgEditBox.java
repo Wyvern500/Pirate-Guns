@@ -9,6 +9,7 @@ import com.jg.pirateguns.registries.ItemRegistries;
 import com.jg.pirateguns.utils.FileUtils;
 import com.mojang.logging.LogUtils;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
@@ -23,9 +24,10 @@ public class JgEditBox extends EditBox {
 		if(getValue() != null && !getValue().equals("")) {
 			if(this.isFocused()) {
 				if(key == GLFW.GLFW_KEY_ENTER) {
-					GunModel model = GunModelsHandler.get(ItemRegistries.PIRATEPISTOL.get());
+					GunModel model = GunModelsHandler.get(Minecraft.getInstance().player
+							.getMainHandItem().getItem().getRegistryName().toString());
 					if(model != null) {
-						if(model.getAnimation() != Animation.EMPTY) {
+						if(model.getAnimation() != null) {
 							LogUtils.getLogger().info("Trying to create animation");
 							FileUtils.writeFile(getValue(), model.getAnimation());
 						}

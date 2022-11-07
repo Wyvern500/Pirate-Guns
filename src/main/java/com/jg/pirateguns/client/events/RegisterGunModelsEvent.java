@@ -12,11 +12,11 @@ public class RegisterGunModelsEvent extends Event {
 		
 	}
 	
-	public void register(Item item, GunModel model) {
+	public void register(String item, GunModel model) {
 		GunModelsHandler.register(item, model);
 	}
 	
-	public void getModel(Item item) {
+	public void getModel(String item) {
 		GunModelsHandler.get(item);
 	}
 	

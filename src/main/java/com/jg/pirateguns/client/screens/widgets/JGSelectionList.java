@@ -60,19 +60,14 @@ public class JGSelectionList extends GuiComponent implements Widget {
 		this.from = 0;
 		this.to = this.cols > this.keys.size() ? this.keys.size() : this.cols;
 		this.hideItems = (this.keys.size() - this.cols) < 0 ? 0 : this.keys.size() - this.cols;
-		try {
-			if(this.hideItems != 0) {
-				LogUtils.getLogger().info("HideItems: " + this.hideItems + 
-						" keys size: " + this.keys.size() + " hideItems/keys size: " + 
-						((float)this.hideItems/this.keys.size()) + " other: " + 
-						(1 - (((float)this.hideItems / this.keys.size()) == 0 ? 1 : 
-							(float)this.hideItems / this.keys.size())) );
-				this.scrollHeight = (int) Mth.lerp(1 - (((float)this.hideItems / 
-						this.keys.size()) == 0 ? 1 : (float)this.hideItems / 
-								this.keys.size()), 0, this.colHeight * this.cols);
-			}
-		} catch (ArithmeticException e) {
-			e.printStackTrace();
+		if (this.hideItems != 0) {
+			LogUtils.getLogger()
+					.info("HideItems: " + this.hideItems + " keys size: " + this.keys.size() + " hideItems/keys size: "
+							+ ((float) this.hideItems / this.keys.size()) + " other: "
+							+ (1 - (((float) this.hideItems / this.keys.size()) == 0 ? 1
+									: (float) this.hideItems / this.keys.size())));
+			this.scrollHeight = (int) Mth.lerp(1 - (((float) this.hideItems / this.keys.size()) == 0 ? 1
+					: (float) this.hideItems / this.keys.size()), 0, this.colHeight * this.cols);
 		}
 		this.scrollWidth = 7;
 		this.scrollY = this.y;
@@ -194,8 +189,7 @@ public class JGSelectionList extends GuiComponent implements Widget {
 				this.wrapScrollY();
 				float part1 = (((float) this.y) - ((float) this.scrollY));
 				float part2 = (((float) (this.cols * this.colHeight) - (float) this.scrollHeight));
-				this.offset = Mth.floor(Mth.abs(Mth.lerp(part1 / part2, 0, 
-						this.keys.size() - this.cols)));
+				this.offset = Mth.floor(Mth.abs(Mth.lerp(part1 / part2, 0, this.keys.size() - this.cols)));
 				this.from = 0 + this.offset;
 				if (this.cols > this.keys.size()) {
 					this.to = this.keys.size();
@@ -245,16 +239,19 @@ public class JGSelectionList extends GuiComponent implements Widget {
 	}
 
 	public void update() {
+		if(keys.isEmpty())return;
+		try {
 		this.from = 0;
 		this.to = this.cols > this.keys.size() ? this.keys.size() : this.cols;
-		LogUtils.getLogger().info("hideItems: " + hideItems + " keys size: " + keys.size() + " div: "
-				+ (this.hideItems / this.keys.size()));
-		this.hideItems = (this.keys.size() - this.cols) < 0 ? 0 : this.keys.size() - this.cols;
-		try {
-			this.scrollHeight = (int) Mth.lerp(1 - (((float)this.hideItems / 
-					this.keys.size()) == 0 ? 1 : (float)this.hideItems / 
-							this.keys.size()), 0, this.colHeight * this.cols);
-		} catch (ArithmeticException e) {
+		this.hideItems = (this.keys.size() - this.cols) < 0 ? 0 : 
+			this.keys.size() - this.cols;
+		LogUtils.getLogger().info("hideItems: " + hideItems + " keys size: " + keys.size());
+		LogUtils.getLogger().info(" div: " + (this.hideItems / this.keys.size()));
+		this.scrollHeight = (int) Mth.lerp(
+				1 - (((float) this.hideItems / this.keys.size()) == 0 ? 1 : 
+					(float) this.hideItems / this.keys.size()),
+				0, this.colHeight * this.cols);
+		} catch(ArithmeticException e) {
 			e.printStackTrace();
 		}
 	}
@@ -346,10 +343,20 @@ public class JGSelectionList extends GuiComponent implements Widget {
 	}
 
 	public Key[] getSelectedKeys() {
+		LogUtils.getLogger().info("Selected size: " + selected.size());
+		for(int i : selected) {
+			LogUtils.getLogger().info("Selected: " + i);
+		}
 		if (keys.size() > 0 && !selected.isEmpty()) {
 			Key[] newKeys = new Key[selected.size()];
 			for (int i = 0; i < selected.size(); i++) {
-				newKeys[i] = keys.get(i);
+				try {
+				newKeys[i] = keys.get(selected.get(i));
+				} catch(ArrayIndexOutOfBoundsException e) {
+					e.printStackTrace();
+				} catch(IndexOutOfBoundsException e) {
+					e.printStackTrace();
+				}
 			}
 			try {
 				return newKeys;

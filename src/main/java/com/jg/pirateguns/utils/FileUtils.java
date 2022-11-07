@@ -36,6 +36,24 @@ public class FileUtils {
 			}else {
 				System.out.println("File already exists");
 			}
+			try {
+				BufferedWriter bfw = new BufferedWriter(new FileWriter(f));
+				String defaultAnim = "animation>start\r\n"
+						+ "animation>dur=4\n"
+						+ "animation>gunModelItem=empty\n"
+						+ "animation>name=\"Empty\n"
+						+ "animation>current=1\n"
+						+ "animation>prog=0.0\n"
+						+ "animation>end " 
+						+ "keyframe>start\n"
+						+ "keyframe>dur=4\n"
+						+ "keyframe>startTick=0\n"
+						+ "keyframe>end";
+				bfw.write(defaultAnim);
+				bfw.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 			return f;
 		} else {
 			return new File(completePath);
@@ -46,7 +64,8 @@ public class FileUtils {
 		String all = "";
 		String line = "";
 		try {
-			BufferedReader bfr = new BufferedReader(new FileReader(locateAnimation(animation)));
+			BufferedReader bfr = new BufferedReader(new FileReader(
+					locateAnimation(animation)));
 			while((line = bfr.readLine()) != null) {
 				all += line + "\n";
 			}

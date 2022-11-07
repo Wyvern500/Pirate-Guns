@@ -144,7 +144,7 @@ public class ClientHandler {
 	
 	public void selectGunModel() {
 		Item gun = Minecraft.getInstance().player.getMainHandItem().getItem();
-		this.current = GunModelsHandler.get(gun);
+		this.current = GunModelsHandler.get(gun.getRegistryName().toString());
 	}
 	
 	public void switchRotationMode() {
