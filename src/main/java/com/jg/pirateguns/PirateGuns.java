@@ -4,6 +4,7 @@ import com.jg.pirateguns.client.handlers.ClientEventHandler;
 import com.jg.pirateguns.config.Config;
 import com.jg.pirateguns.entities.Canon;
 import com.jg.pirateguns.network.LoadBulletMessage;
+import com.jg.pirateguns.network.PlaySoundMessage;
 import com.jg.pirateguns.network.ShootCanonBallMessage;
 import com.jg.pirateguns.network.ShootMessage;
 import com.jg.pirateguns.proxy.ClientProxy;
@@ -11,6 +12,7 @@ import com.jg.pirateguns.proxy.IProxy;
 import com.jg.pirateguns.proxy.ServerProxy;
 import com.jg.pirateguns.registries.EntityRegistries;
 import com.jg.pirateguns.registries.ItemRegistries;
+import com.jg.pirateguns.registries.SoundRegistries;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
@@ -63,6 +65,7 @@ public class PirateGuns {
         PirateGuns.proxy.registerModEventListeners(bus);
         
         //Register mod stuff (Items, Entities, Containers, etc.)
+        SoundRegistries.SOUNDS.register(bus);
         ItemRegistries.ITEMS.register(bus);
         EntityRegistries.ENTITIES.register(bus);
         
@@ -85,6 +88,9 @@ public class PirateGuns {
 		channel.registerMessage(packetsRegistered++, ShootMessage.class, 
 				ShootMessage::encode, ShootMessage::decode, 
 				ShootMessage::handle);
+		channel.registerMessage(packetsRegistered++, PlaySoundMessage.class, 
+				PlaySoundMessage::encode, PlaySoundMessage::decode, 
+				PlaySoundMessage::handle);
 	}
 	
 	private void registerAttributes(EntityAttributeCreationEvent e) {

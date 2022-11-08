@@ -8,7 +8,7 @@ public class NBTUtils {
 		stack.getOrCreateTag().putBoolean(Constants.loaded, loaded);
 	}
 	
-	public static boolean getLoaded(ItemStack stack) {
+	public static boolean isLoaded(ItemStack stack) {
 		return stack.getOrCreateTag().getBoolean(Constants.loaded);
 	}
 	

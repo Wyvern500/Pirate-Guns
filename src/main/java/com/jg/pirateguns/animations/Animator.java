@@ -45,12 +45,12 @@ public class Animator {
             this.prevRotations.put(model.getGunParts().get(i), 
                 new float[] { 0, 0, 0 });
         }
-		if(model.getPart("rightarm") != null) {
+		/*if(model.getPart("rightarm") != null) {
     		LogUtils.getLogger().info("Start Rightarm: " + 
     				Arrays.toString(model.getPart("rightarm").getTransform().rot) + " prev: " + 
     				Arrays.toString(prevRotations.get(model.getPart("rightarm"))) + " current: " + 
     				Arrays.toString(currentRotations.get(model.getPart("rightarm"))));
-    	}
+    	}*/
 		animation = null;
 	}
 
@@ -64,12 +64,12 @@ public class Animator {
 			currentTranslations = animation.keyframes.get(current).translations;
 			currentRotations = animation.keyframes.get(current).rotations;
 			this.prevDur = 0;
-			if(model.getPart("rightarm") != null) {
+			/*if(model.getPart("rightarm") != null) {
 	    		LogUtils.getLogger().info("Start Rightarm: " + 
 	    				Arrays.toString(model.getPart("rightarm").getTransform().rot) + " prev: " + 
 	    				Arrays.toString(prevRotations.get(model.getPart("rightarm"))) + " current: " + 
 	    				Arrays.toString(currentRotations.get(model.getPart("rightarm"))));
-	    	}
+	    	}*/
 		}
 	}
 	
@@ -220,14 +220,14 @@ public class Animator {
         	} catch (NullPointerException e) {
 				e.printStackTrace();
 			}
-        	LogUtils.getLogger().info("Name: " + part.getName() + " transform: " + 
+        	/*LogUtils.getLogger().info("Name: " + part.getName() + " transform: " + 
         			part.getTransform().toString() + " part1: " 
         			+ Arrays.toString(part1) + " part2: " + Arrays.toString(part2) +
         			" currentTransform: " + Arrays.toString(this.currentTranslations.get(part)) + 
         			" lerp values: x: " + Mth.lerp(prog, part1[0], 
                 			part2[0]) + " y: " + Mth.lerp(prog, part1[1], 
                         			part2[1]) + " z: " + Mth.lerp(prog, part1[2], 
-                                			part2[2]));
+                                			part2[2]));*/
         }
         for(GunModelPart part : currentRotations.keySet()) {
         	if(!prevRotations.containsKey(part)) {
@@ -255,10 +255,12 @@ public class Animator {
             }
             this.updateCurrentMaps();
         }
-        LogUtils.getLogger().info("Current: " + current + " prog: " + prog + 
+        /*LogUtils.getLogger().info("Current: " + current + " prog: " + prog + 
         		" tick: " + tick + 
         		" kf startTick: " + kf.startTick + " kf visualTick: " + kf.startVisualTick
         		+ " tick-kf.startTick: " + (tick-kf.startTick) + " kf.dur: " + kf.dur);
+		*/
+        LogUtils.getLogger().info("Tick: " + tick);
 	}
 	
 	public void prevTick() {
@@ -296,14 +298,14 @@ public class Animator {
         	} catch (NullPointerException e) {
 				e.printStackTrace();
 			}
-        	LogUtils.getLogger().info("Name: " + part.getName() + " transform: " + 
+        	/*LogUtils.getLogger().info("Name: " + part.getName() + " transform: " + 
         			part.getTransform().toString() + " part1: " 
         			+ Arrays.toString(part1) + " part2: " + Arrays.toString(part2) +
         			" currentTransform: " + Arrays.toString(this.currentTranslations.get(part)) + 
         			" lerp values: x: " + Mth.lerp(prog, part1[0], 
                 			part2[0]) + " y: " + Mth.lerp(prog, part1[1], 
                         			part2[1]) + " z: " + Mth.lerp(prog, part1[2], 
-                                			part2[2]));
+                                			part2[2]));*/
         }
         for(GunModelPart part : currentRotations.keySet()) {
         	if(!prevRotations.containsKey(part)) {
@@ -337,7 +339,7 @@ public class Animator {
                     .translations;
                 this.currentRotations = this.animation.keyframes.get(current)
                     .rotations;
-                LogUtils.getLogger().info("Current <= 0");
+                //LogUtils.getLogger().info("Current <= 0");
         	} else if(current > 0){
         		try {
         		this.prevTranslations = this.animation.keyframes.get(current-1)
@@ -351,12 +353,14 @@ public class Animator {
         		} catch(IndexOutOfBoundsException e) {
         			e.printStackTrace();
         		}
-        		LogUtils.getLogger().info("Current > 0");
+        		//LogUtils.getLogger().info("Current > 0");
         	}
         }
-        LogUtils.getLogger().info("Current: " + current + " tick: " + tick + 
+        /*LogUtils.getLogger().info("Current: " + current + " tick: " + tick + 
         		" kf startTick: " + kf.startTick + " kf visualTick: " + kf.startVisualTick
         		+ " tick-kf.startTick: " + (tick-kf.startTick) + " kf.dur: " + kf.dur);
+		*/
+        LogUtils.getLogger().info("Tick: " + tick);
 	}
 
 	public int getPrevStartTick() {

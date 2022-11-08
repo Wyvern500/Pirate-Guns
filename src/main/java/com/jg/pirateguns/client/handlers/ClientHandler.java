@@ -2,6 +2,7 @@ package com.jg.pirateguns.client.handlers;
 
 import com.jg.pirateguns.animations.parts.GunModel;
 import com.jg.pirateguns.animations.parts.GunModelPart;
+import com.jg.pirateguns.utils.NBTUtils;
 import com.jg.pirateguns.utils.Utils;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
@@ -22,6 +23,7 @@ public class ClientHandler {
 	public int part;
 	public boolean rotate;
 	public boolean init;
+	public boolean display;
 	
 	private SprintHandler sprint;
 	private AimHandler aim;
@@ -40,11 +42,13 @@ public class ClientHandler {
 	}
 	
 	public void shoot(Player player) {
-		Utils.spawnParticlesOnPlayerView(player, 50, 0, 0, 0);
-		current.shoot(player);
-		recoil.setShoot();
-		player.setXRot(player.getXRot()-(float)(Math.random() * 2));
-		player.setYRot(player.getYRot()+(float)(Math.random() * 2));
+		//if(current.canShoot(player, player.getMainHandItem())) {
+			Utils.spawnParticlesOnPlayerView(player, 50, 0, 0, 0);
+			current.shoot(player, player.getMainHandItem());
+			recoil.setShoot();
+			player.setXRot(player.getXRot()-(float)(Math.random() * 2));
+			player.setYRot(player.getYRot()+(float)(Math.random() * 2));
+		//}
 	}
 	
 	// Rendering
@@ -89,24 +93,44 @@ public class ClientHandler {
 			if(!rotate) {
 				GunModelPart gunPart = current.getParts()[part];
 				if(gunPart != null) {
-					gunPart.getTransform().pos[type] += v;
-					LogUtils.getLogger().info("Transform pos: x: " + current.getParts()[part].getTransform().pos[0] + " y: " + current.getParts()[part].getTransform().pos[1] + " z: " + current.getParts()[part].getTransform().pos[2]);
+					if(!display) {
+						gunPart.getTransform().pos[type] += v;
+						LogUtils.getLogger().info("Transform pos: x: " + current.getParts()[part].getTransform().pos[0] + " y: " + current.getParts()[part].getTransform().pos[1] + " z: " + current.getParts()[part].getTransform().pos[2]);
+					} else {
+						gunPart.getDTransform().pos[type] += v;
+						LogUtils.getLogger().info("Transform pos: x: " + current.getParts()[part].getDTransform().pos[0] + " y: " + current.getParts()[part].getDTransform().pos[1] + " z: " + current.getParts()[part].getDTransform().pos[2]);
+					}
 				}
 			} else {
 				GunModelPart gunPart = current.getParts()[part];
 				if(gunPart != null) {
-					current.getParts()[part].getTransform().rot[type] += (float)Math.toRadians(vr);
-					LogUtils.getLogger().info("Transform Rad x: " + current.getParts()[part].getTransform().rot[0]
-							+ " y: " + 
-							current.getParts()[part].getTransform().rot[1]
-							+ " z: " 
-							+ current.getParts()[part].getTransform().rot[2] + 
-							" Deg x: " + 
-							(float)Math.toDegrees(current.getParts()[part].getTransform().rot[0])
-							+ " y: " + 
-							(float)Math.toDegrees(current.getParts()[part].getTransform().rot[1]) 
-							+ " z: " 
-							+ (float)Math.toDegrees(current.getParts()[part].getTransform().rot[2]));
+					if(!display) {
+						current.getParts()[part].getTransform().rot[type] += (float)Math.toRadians(vr);
+						LogUtils.getLogger().info("Transform Rad x: " + current.getParts()[part].getTransform().rot[0]
+								+ " y: " + 
+								current.getParts()[part].getTransform().rot[1]
+								+ " z: " 
+								+ current.getParts()[part].getTransform().rot[2] + 
+								" Deg x: " + 
+								(float)Math.toDegrees(current.getParts()[part].getTransform().rot[0])
+								+ " y: " + 
+								(float)Math.toDegrees(current.getParts()[part].getTransform().rot[1]) 
+								+ " z: " 
+								+ (float)Math.toDegrees(current.getParts()[part].getTransform().rot[2]));
+					} else {
+						current.getParts()[part].getDTransform().rot[type] += (float)Math.toRadians(vr);
+						LogUtils.getLogger().info("Transform Rad x: " + current.getParts()[part].getDTransform().rot[0]
+								+ " y: " + 
+								current.getParts()[part].getDTransform().rot[1]
+								+ " z: " 
+								+ current.getParts()[part].getDTransform().rot[2] + 
+								" Deg x: " + 
+								(float)Math.toDegrees(current.getParts()[part].getDTransform().rot[0])
+								+ " y: " + 
+								(float)Math.toDegrees(current.getParts()[part].getDTransform().rot[1]) 
+								+ " z: " 
+								+ (float)Math.toDegrees(current.getParts()[part].getDTransform().rot[2]));
+					}
 				}
 			}
 		}
@@ -119,24 +143,44 @@ public class ClientHandler {
 			if(!rotate) {
 				GunModelPart gunPart = current.getParts()[part];
 				if(gunPart != null) {
-					current.getParts()[part].getTransform().pos[type] -= v;
-					LogUtils.getLogger().info("Transform pos: x: " + current.getParts()[part].getTransform().pos[0] + " y: " + current.getParts()[part].getTransform().pos[1] + " z: " + current.getParts()[part].getTransform().pos[2]);
+					if(!display) {
+						gunPart.getTransform().pos[type] -= v;
+						LogUtils.getLogger().info("Transform pos: x: " + current.getParts()[part].getTransform().pos[0] + " y: " + current.getParts()[part].getTransform().pos[1] + " z: " + current.getParts()[part].getTransform().pos[2]);
+					} else {
+						gunPart.getDTransform().pos[type] -= v;
+						LogUtils.getLogger().info("Transform pos: x: " + current.getParts()[part].getDTransform().pos[0] + " y: " + current.getParts()[part].getDTransform().pos[1] + " z: " + current.getParts()[part].getDTransform().pos[2]);
+					}
 				}
 			} else {
 				GunModelPart gunPart = current.getParts()[part];
 				if(gunPart != null) {
-					current.getParts()[part].getTransform().rot[type] -= (float)Math.toRadians(vr);
-					LogUtils.getLogger().info("Transform Rad x: " + current.getParts()[part].getTransform().rot[0]
-							+ " y: " + 
-							current.getParts()[part].getTransform().rot[1]
-							+ " z: " 
-							+ current.getParts()[part].getTransform().rot[2] + 
-							" Deg x: " + 
-							(float)Math.toDegrees(current.getParts()[part].getTransform().rot[0])
-							+ " y: " + 
-							(float)Math.toDegrees(current.getParts()[part].getTransform().rot[1]) 
-							+ " z: " 
-							+ (float)Math.toDegrees(current.getParts()[part].getTransform().rot[2]));
+					if(!display) {
+						current.getParts()[part].getTransform().rot[type] -= (float)Math.toRadians(vr);
+						LogUtils.getLogger().info("Transform Rad x: " + current.getParts()[part].getTransform().rot[0]
+								+ " y: " + 
+								current.getParts()[part].getTransform().rot[1]
+								+ " z: " 
+								+ current.getParts()[part].getTransform().rot[2] + 
+								" Deg x: " + 
+								(float)Math.toDegrees(current.getParts()[part].getTransform().rot[0])
+								+ " y: " + 
+								(float)Math.toDegrees(current.getParts()[part].getTransform().rot[1]) 
+								+ " z: " 
+								+ (float)Math.toDegrees(current.getParts()[part].getTransform().rot[2]));
+					} else {
+						current.getParts()[part].getDTransform().rot[type] -= (float)Math.toRadians(vr);
+						LogUtils.getLogger().info("Transform Rad x: " + current.getParts()[part].getDTransform().rot[0]
+								+ " y: " + 
+								current.getParts()[part].getDTransform().rot[1]
+								+ " z: " 
+								+ current.getParts()[part].getDTransform().rot[2] + 
+								" Deg x: " + 
+								(float)Math.toDegrees(current.getParts()[part].getDTransform().rot[0])
+								+ " y: " + 
+								(float)Math.toDegrees(current.getParts()[part].getDTransform().rot[1]) 
+								+ " z: " 
+								+ (float)Math.toDegrees(current.getParts()[part].getDTransform().rot[2]));
+					}
 				}
 			}
 		}

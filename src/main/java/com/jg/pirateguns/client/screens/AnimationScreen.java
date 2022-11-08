@@ -432,7 +432,8 @@ public class AnimationScreen extends Screen {
 
 		buttons.add(new Button(298, 59, 30, 20, new TranslatableComponent("Set"), (b) -> {
 			if (model.getAnimation() != null && 
-					!gunPartList.getSelectedIndexes().isEmpty()) {
+					!gunPartList.getSelectedIndexes().isEmpty() && 
+					keyframeLine.getSelected() != -1) {
 				Keyframe kf = getSelectedKeyframe();
 				GunModelPart part = model.getGunParts().get(gunPartList
 						.getSelectedIndexes().get(0));

@@ -14,6 +14,7 @@ import com.jg.pirateguns.client.screens.AnimationScreen;
 import com.jg.pirateguns.guns.GunItem;
 import com.jg.pirateguns.network.ShootMessage;
 import com.jg.pirateguns.utils.FileUtils;
+import com.jg.pirateguns.utils.NBTUtils;
 import com.jg.pirateguns.utils.PGMath;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
@@ -25,6 +26,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.model.ItemTransforms.TransformType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.player.Player;
@@ -56,10 +58,6 @@ public abstract class GunModel {
 		this.animator = new Animator(this);
 		this.hasChanges = true;
 		this.playAnimation = true;
-		/*for(String anim : animations) {
-			this.animations.put(anim, AnimationSerializer
-					.deserialize(FileUtils.readFile(anim)));
-		}*/
 	}
 	
 	// Transform
@@ -78,9 +76,14 @@ public abstract class GunModel {
 	
 	// Gun Methods
 	
-	public void shoot(Player player) {
-		PirateGuns.channel.sendToServer(new ShootMessage(player.getYRot(), player.getXRot()));
+	public void shoot(Player player, ItemStack stack) {
+		PirateGuns.channel.sendToServer(new ShootMessage(player.getYRot(), 
+				player.getXRot(), getShootSound().getRegistryName().toString()));
 		markChanges();
+	}
+	
+	public boolean canShoot(Player player, ItemStack stack) {
+		return NBTUtils.isLoaded(stack);
 	}
 	
 	// Rendering
@@ -93,7 +96,6 @@ public abstract class GunModel {
 	
 	protected void renderItem(LocalPlayer player, ItemStack stack, MultiBufferSource buffer, PoseStack matrix, int light, Transform transform) {
 		translateAndRotate(transform, matrix);
-		//LogUtils.getLogger().info("Transform: " + transform.pos[0]);
 		Minecraft.getInstance().getItemInHandRenderer()
 		.renderItem(player, stack, TransformType.FIRST_PERSON_RIGHT_HAND
 				, false, matrix, buffer, light);
@@ -192,22 +194,17 @@ public abstract class GunModel {
 
 	public void tick(Player player, ItemStack stack) {
 		animator.update();
-		
-		/*if(shouldUpdateAnimation) {
-			if(getAnimation() != null) {
-				Animation anim = AnimationSerializer
-						.deserialize(FileUtils.readFile(getAnimation().getName()));
-				animator.getAnimation().set(anim);
-			}
-			shouldUpdateAnimation = false;
-		}*/
 	}
 	
 	public abstract void render(LocalPlayer player, ItemStack stack, MultiBufferSource buffer, PoseStack matrix, int light);
 	
 	public abstract void reload(Player player, ItemStack stack);
 	
+	public abstract Animation getLookAnimation(); 
+	
 	public abstract List<GunModelPart> getGunParts();
 	
 	public abstract GunModelPart getGunModelPart();
+	
+	public abstract SoundEvent getShootSound();
 }

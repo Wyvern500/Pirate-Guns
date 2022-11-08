@@ -4,6 +4,7 @@ import java.util.function.Supplier;
 
 import com.jg.pirateguns.PirateGuns;
 import com.jg.pirateguns.items.PiratePistol;
+import com.jg.pirateguns.items.PirateRifle;
 
 import net.minecraft.world.item.Item;
 import net.minecraftforge.registries.DeferredRegister;
@@ -16,6 +17,9 @@ public class ItemRegistries {
 	
 	public static final RegistryObject<Item> PIRATEPISTOL = regAdd("pirate_pistol", 
 			() -> new PiratePistol());
+	
+	public static final RegistryObject<Item> PIRATERIFLE = regAdd("pirate_rifle", 
+			() -> new PirateRifle());
 	
 	public static <I extends Item> RegistryObject<I> regAdd(String name, final Supplier<? extends I> sup) {
 		RegistryObject<I> obj = ITEMS.register(name, sup);
