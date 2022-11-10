@@ -54,6 +54,16 @@ public class Animation {
 		return this;
 	}
 	
+	public Animation startKeyframe(int dur, String easing) {
+		this.startKeyframeIndex++;
+		Keyframe kf = new Keyframe(dur, easing);
+		kf.startTick = this.startTick;
+		kf.startVisualTick = this.startTick + dur;
+		this.keyframes.add(kf);
+		this.startTick += dur;
+		return this;
+	}
+	
 	public Animation translate(GunModelPart part, float x, float y, float z) {
 		this.keyframes.get(startKeyframeIndex).translations.put(part, 
 				new float[] { x, y, z });

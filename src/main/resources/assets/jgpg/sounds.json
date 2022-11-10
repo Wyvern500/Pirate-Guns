@@ -88,5 +88,25 @@
             "stream": false
           }
         ]
+    },
+    "gun_hit_sound": {
+        "category": "neutral",
+        "subtitle": "gun_hit_sound",
+        "sounds": [
+          {
+            "name": "jgpg:neutral/guns/gun_hit_sound",
+            "stream": false
+          }
+        ]
+    },
+    "gun_moving_sound": {
+        "category": "neutral",
+        "subtitle": "gun_moving_sound",
+        "sounds": [
+          {
+            "name": "jgpg:neutral/guns/gun_moving_sound",
+            "stream": false
+          }
+        ]
     }
 }

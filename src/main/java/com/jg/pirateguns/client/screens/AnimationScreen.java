@@ -115,10 +115,15 @@ public class AnimationScreen extends Screen {
 					Keyframe kf = model.getAnimation().getKeyframes().get(keyframeLine
 							.getSelected());
 					GunModelPart part = Utils.getGunPartByName(model, k.getKey());
-					edits.get(0).setValue(String.valueOf(kf.translations.get(part)[0]));
-					edits.get(1).setValue(String.valueOf(kf.translations.get(part)[1]));
-					edits.get(2).setValue(String.valueOf(kf.translations.get(part)[2]));
-					LogUtils.getLogger().info("key: " + k.getKey());
+					if(kf.translations.containsKey(part)) {
+						edits.get(0).setValue(String.valueOf(kf.translations.get(part)[0]));
+						edits.get(1).setValue(String.valueOf(kf.translations.get(part)[1]));
+						edits.get(2).setValue(String.valueOf(kf.translations.get(part)[2]));
+						LogUtils.getLogger().info("key: " + k.getKey());
+					} else {
+						LogUtils.getLogger().info("key: " + k.getKey() + 
+								" doesnt have a transform");
+					}
 				}
 			}
 		});
@@ -128,9 +133,11 @@ public class AnimationScreen extends Screen {
 					Keyframe kf = model.getAnimation().getKeyframes().get(keyframeLine
 							.getSelected());
 					GunModelPart part = Utils.getGunPartByName(model, k.getKey());
-					edits.get(3).setValue(String.valueOf(kf.rotations.get(part)[0]));
-					edits.get(4).setValue(String.valueOf(kf.rotations.get(part)[1]));
-					edits.get(5).setValue(String.valueOf(kf.rotations.get(part)[2]));
+					if(kf.rotations.containsKey(part)) {
+						edits.get(3).setValue(String.valueOf(kf.rotations.get(part)[0]));
+						edits.get(4).setValue(String.valueOf(kf.rotations.get(part)[1]));
+						edits.get(5).setValue(String.valueOf(kf.rotations.get(part)[2]));
+					}
 				}
 			}
 		});
@@ -358,6 +365,15 @@ public class AnimationScreen extends Screen {
 				keyframeLine.setScale(Integer.parseInt(edits.get(8).getValue()));
 			}
 		});
+		edits.add(new EditBox(font, 16, 182, 80, 20, new TranslatableComponent("animationScreen.easing")));
+		edits.get(9).setValue("empty");
+		edits.get(9).setResponder((s) -> {
+			if (!edits.get(9).getValue().isBlank()) {
+				if(keyframeLine.getSelected() != -1) {
+					getSelectedKeyframe().easing = s;
+				}
+			}
+		});
 
 		// Buttons
 		buttons.add(new Button(342, 24, 30, 20, new TranslatableComponent("Play"), (b) -> {
@@ -438,6 +454,7 @@ public class AnimationScreen extends Screen {
 				GunModelPart part = model.getGunParts().get(gunPartList
 						.getSelectedIndexes().get(0));
 				LogUtils.getLogger().info("sd");
+				LogUtils.getLogger().info("index: " + gunPartList.getSelectedIndexes().get(0));
 				if (!booleanCycles.get(0).getValue()) {
 					LogUtils.getLogger().info("sd");
 					if(!kf.translations.containsKey(part)) {
@@ -616,20 +633,22 @@ public class AnimationScreen extends Screen {
 				16777215, true);
 		this.font.drawShadow(matrix, "s: ", (float) 10 + (-AnimationScreen.this.font.width("st: ") / 2), (float) (164),
 				16777215, true);
+		this.font.drawShadow(matrix, "es: ", (float) 10 + (-AnimationScreen.this.font.width("es: ") / 2), (float) (184),
+				16777215, true);
 		if(model.getAnimation() != null) {
 			this.font.drawShadow(matrix, "Animation Name: " + model.getAnimation().getName(),
-					(float) 10
+					(float) 200
 							+ (-AnimationScreen.this.font.width("Animation Name: " + model.getAnimation().getName()) / 2),
-					(float) (184), 16777215, true);
+					(float) (192), 16777215, true);
 		}
 		this.font.drawShadow(matrix, "Update Parts: " + model.getAnimator().shouldUpdateParts(),
 				(float) 14
 						+ (-AnimationScreen.this.font.width("Update Parts: " + model.getAnimator().shouldUpdateParts()) / 2),
-				(float) (198), 16777215, true);
+				(float) (208), 16777215, true);
 		this.font.drawShadow(matrix, "Current: " + current,
-				(float) 32
+				(float) 28
 						+ (-AnimationScreen.this.font.width("Current: " + current) / 2),
-				(float) (210), 16777215, true);
+				(float) (222), 16777215, true);
 		/*
 		 * if(model.getAnimation() != null) {
 		 * LogUtils.getLogger().info("Keyframe size: " + model.getAnimation()

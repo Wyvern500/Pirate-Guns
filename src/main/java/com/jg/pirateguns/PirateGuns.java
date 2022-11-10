@@ -3,6 +3,7 @@ package com.jg.pirateguns;
 import com.jg.pirateguns.client.handlers.ClientEventHandler;
 import com.jg.pirateguns.config.Config;
 import com.jg.pirateguns.entities.Canon;
+import com.jg.pirateguns.network.ConsumeItemMessage;
 import com.jg.pirateguns.network.LoadBulletMessage;
 import com.jg.pirateguns.network.PlaySoundMessage;
 import com.jg.pirateguns.network.ShootCanonBallMessage;
@@ -91,6 +92,9 @@ public class PirateGuns {
 		channel.registerMessage(packetsRegistered++, PlaySoundMessage.class, 
 				PlaySoundMessage::encode, PlaySoundMessage::decode, 
 				PlaySoundMessage::handle);
+		channel.registerMessage(packetsRegistered++, ConsumeItemMessage.class, 
+				ConsumeItemMessage::encode, ConsumeItemMessage::decode, 
+				ConsumeItemMessage::handle);
 	}
 	
 	private void registerAttributes(EntityAttributeCreationEvent e) {

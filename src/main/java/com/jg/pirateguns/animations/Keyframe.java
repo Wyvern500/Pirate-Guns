@@ -11,6 +11,7 @@ public class Keyframe {
 	public int dur;
 	public int startTick;
 	public int startVisualTick;
+	public String easing;
 	public Map<GunModelPart, float[]> translations;
 	public Map<GunModelPart, float[]> rotations;
 	
@@ -18,6 +19,14 @@ public class Keyframe {
 		this.dur = dur;
 		translations = new HashMap<>();
 		rotations = new HashMap<>();
+		this.easing = "empty";
+	}
+	
+	public Keyframe(int dur, String easing) {
+		this.dur = dur;
+		translations = new HashMap<>();
+		rotations = new HashMap<>();
+		this.easing = easing;
 	}
 	
 	public void copyTransformFrom(Keyframe kf) {

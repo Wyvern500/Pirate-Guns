@@ -90,6 +90,7 @@ public class GunBullet extends ThrowableProjectile implements ItemSupplier {
 				float g = entityData.get(GunBullet.GRAVITY);
 				this.setDeltaMovement(this.getDeltaMovement().multiply(g, g, g));
 				if (damred > 0) {
+					LogUtils.getLogger().info("Dmg: " + damred);
 					setDamage(damred);
 					dist = 0;
 				}

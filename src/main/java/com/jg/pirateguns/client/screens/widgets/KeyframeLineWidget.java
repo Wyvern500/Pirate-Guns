@@ -201,23 +201,6 @@ public class KeyframeLineWidget extends GuiComponent implements Widget {
 		if(this.visible) {
 			if(keyframes != null) {
 				LogUtils.getLogger().info("Keyframes not null");
-				/*for(int i = 0; i < keyframes.size(); i++) {
-					int kfx = (int) (this.minX + (Mth.lerp((float)this.keyframes.get(i)
-			                .startVisualTick / this.animDur,0 ,this.deltaX) * this.scale) 
-							- 10 - this.offset);
-					LogUtils.getLogger().info("mouseX: " + mouseX + " mouseY: " + mouseY + 
-							" kfx: " + kfx);
-					if(mouseX > kfx && mouseX < kfx + 20 && mouseY > 92
-							&& mouseY < 92) {
-						if(this.selected != i) {
-							this.selected = i;
-							processOnClick(i);
-						} else {
-							this.selected = -1;
-						}
-					} 
-				}*/
-				
 				for(int i = 0; i < keyframes.size(); i++) {
 					int kfx = (int) (this.minX + (Mth.lerp((float)this.keyframes.get(i)
 			                .startTick / this.animDur, 0, this.deltaX)*this.scale) 
@@ -241,10 +224,6 @@ public class KeyframeLineWidget extends GuiComponent implements Widget {
 
 	public void processOnClick(int i) {
 		try {
-			/*screen.getEditBoxes().get(7).setValue(String.valueOf(
-					this.keyframes.get(i).dur));
-			screen.getEditBoxes().get(8).setValue(String.valueOf(
-					this.keyframes.get(i).startVisualTick));*/
 			Key[] newPosKeys = new Key[this.keyframes.get(i).translations.size()];
 			int j = 0;
 			for(GunModelPart s : this.keyframes.get(i).translations.keySet()) {
@@ -261,6 +240,7 @@ public class KeyframeLineWidget extends GuiComponent implements Widget {
 			rot.setKeys(newRotKeys);
 			screen.getEditBoxes().get(7).setValue(String.valueOf(
 					this.keyframes.get(i).dur));
+			screen.getEditBoxes().get(9).setValue(this.keyframes.get(i).easing);
 		} catch(IndexOutOfBoundsException e) {
 			e.printStackTrace();
 		}

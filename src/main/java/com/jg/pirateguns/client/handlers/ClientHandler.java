@@ -42,13 +42,13 @@ public class ClientHandler {
 	}
 	
 	public void shoot(Player player) {
-		//if(current.canShoot(player, player.getMainHandItem())) {
+		if(current.canShoot(player, player.getMainHandItem())) {
 			Utils.spawnParticlesOnPlayerView(player, 50, 0, 0, 0);
 			current.shoot(player, player.getMainHandItem());
 			recoil.setShoot();
-			player.setXRot(player.getXRot()-(float)(Math.random() * 2));
-			player.setYRot(player.getYRot()+(float)(Math.random() * 2));
-		//}
+			player.setXRot(player.getXRot()-(float)(Math.random() * current.getKnockback()));
+			player.setYRot(player.getYRot()+(float)(Math.random() * current.getKnockback()));
+		}
 	}
 	
 	// Rendering

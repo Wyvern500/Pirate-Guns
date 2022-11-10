@@ -15,6 +15,7 @@ import net.minecraft.util.Mth;
 
 public class Animator {
 
+	public static Map<String, Easing> easings = new HashMap<>();
 	protected int prevStartTick;
 	protected int prevDur;
 	protected int current;
@@ -25,6 +26,7 @@ public class Animator {
 	protected boolean updateParts;
 	
 	protected Animation animation;
+	protected Easing easing;
 	
 	protected GunModel model;
 	
@@ -39,6 +41,7 @@ public class Animator {
 		currentRotations = new HashMap<>();
 		prevTranslations = new HashMap<>();
 		prevRotations = new HashMap<>();
+		this.easing = (x) -> x;
 		for(int i = 0; i < model.getGunParts().size(); i++){
             this.prevTranslations.put(model.getGunParts().get(i), 
             		new float[] { 0, 0, 0 });
@@ -52,6 +55,7 @@ public class Animator {
     				Arrays.toString(currentRotations.get(model.getPart("rightarm"))));
     	}*/
 		animation = null;
+		easings.put("easeInOut", (x) -> { return 0; });
 	}
 
 	public void setAnimation(Animation animation) {
@@ -64,6 +68,7 @@ public class Animator {
 			currentTranslations = animation.keyframes.get(current).translations;
 			currentRotations = animation.keyframes.get(current).rotations;
 			this.prevDur = 0;
+			this.easing = easings.getOrDefault(animation.keyframes.get(current).easing, (x) -> x);
 			/*if(model.getPart("rightarm") != null) {
 	    		LogUtils.getLogger().info("Start Rightarm: " + 
 	    				Arrays.toString(model.getPart("rightarm").getTransform().rot) + " prev: " + 
@@ -80,7 +85,7 @@ public class Animator {
 	public void update() {
 		if(this.animation != null && model.canPlayAnimation()){
 	            this.prevTick = this.tick;
-	            this.tick += 1;//ClientHandler.partialTicks;
+	            this.tick += 1;
 	            Keyframe kf = this.animation.keyframes.get(current);
 	            if(this.tick-kf.startTick > kf.dur){
 	                this.tick = kf.startTick + kf.dur;
@@ -94,11 +99,17 @@ public class Animator {
 	            		ClientHandler.partialTicks) / kf.dur;
 	            if(this.tick-kf.startTick == kf.dur){
 	                this.prog = 1.0f;
-	                /*for(GunModelPart part : model.getGunParts()) {
-	                	LogUtils.getLogger().info("Part name: " + part.getName() + 
-	                			" transform: " + part.getTransform().toString());
-	                }*/
 	            }
+	            /*String key = "easeInQuint";
+	            this.prog = easings.getOrDefault(key, (x) -> x).get(this.prog);
+	            LogUtils.getLogger().info("Easing: " + easings.containsKey(key));*/
+	            doEasing();
+	        	LogUtils.getLogger().info("Prog: " + prog);
+	        	for(Entry<String, Easing> e : easings.entrySet()) {
+	        		if(e.getValue() == easing) {
+	        			LogUtils.getLogger().info("Easing: " + e.getKey());
+	        		}
+	        	}
 	            for(GunModelPart part : currentTranslations.keySet()) {
 	            	if(!prevTranslations.containsKey(part)) {
 	            		prevTranslations.put(part, new float[] { 0, 0, 0 });
@@ -155,9 +166,15 @@ public class Animator {
 	                	LogUtils.getLogger().info("CR Key: " + e.getKey() + " Value: " + 
 	                			Arrays.toString(e.getValue()));
 	                }*/
+	                this.easing = easings.getOrDefault(kf.easing, (x) -> x);
+	                LogUtils.getLogger().info("Keyframe easing: " + kf.easing);
 	                this.updateCurrentMaps();
 			}
         }
+	}
+	
+	public void doEasing() {
+		this.prog = easing.get(this.prog);
 	}
 	
 	public void finishAll() {
@@ -449,6 +466,10 @@ public class Animator {
 
 	public Animation getAnimation() {
 		return animation;
+	}
+	
+	public interface Easing{
+		public float get(float x);
 	}
 	
 }

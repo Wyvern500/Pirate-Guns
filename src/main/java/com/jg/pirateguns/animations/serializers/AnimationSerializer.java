@@ -95,7 +95,11 @@ public class AnimationSerializer {
 		anim += " = new Animation(\"" + animation.getName() + "\", \"" 
 				+ animation.getGunModel() + "\")\n";
 		for(Keyframe kf : animation.getKeyframes()) {
-			anim += ".startKeyframe(" + kf.dur + ")\n";
+			anim += ".startKeyframe(" + kf.dur;
+			if(!kf.easing.equals("empty") && !kf.easing.isEmpty()) {
+				anim += ", \"" + kf.easing + "\"";
+			}
+			anim += ")\n";
 			for(Entry<GunModelPart, float[]> e : kf.translations.entrySet()) {
 				anim += ".translate(parts[" + getIndexForPart(e.getKey(), model)
 					+ "], " + e.getValue()[0] + "f, " + e.getValue()[1] + "f, " + 
@@ -108,9 +112,6 @@ public class AnimationSerializer {
 			}
 		}
 		anim += ".end();";
-		/*StringSelection stringSelection = new StringSelection(anim);
-		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-		clipboard.setContents(stringSelection, null);*/
 		System.out.println(anim);
 		Minecraft.getInstance().keyboardHandler.setClipboard(anim);
 		return anim;

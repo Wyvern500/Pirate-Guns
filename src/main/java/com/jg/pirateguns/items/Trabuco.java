@@ -5,40 +5,40 @@ import com.jg.pirateguns.registries.SoundRegistries;
 
 import net.minecraft.sounds.SoundEvent;
 
-public class PiratePistol extends GunItem {
+public class Trabuco extends GunItem {
 
-	public PiratePistol() {
+	public Trabuco() {
 		
 	}
 
 	@Override
 	public float getDamage() {
-		return 8f;
+		return 3f;
 	}
 
 	@Override
 	public float getPower() {
-		return 5f;
+		return 5;
+	}
+
+	@Override
+	public int getBulletsPerShoot() {
+		return 8;
 	}
 
 	@Override
 	public int getRange() {
-		return 10;
+		return 4;
 	}
 
 	@Override
 	public float getRangeDamageReduction() {
-		return 0.7f;
+		return 0.4f;
 	}
 
 	@Override
 	public float getInnacuracy() {
-		return 0.1f;
-	}
-
-	@Override
-	public SoundEvent getShootSound() {
-		return SoundRegistries.FLINTLOCK_PISTOL_SHOOT.get();
+		return 10f;
 	}
 
 	@Override
@@ -47,8 +47,8 @@ public class PiratePistol extends GunItem {
 	}
 
 	@Override
-	public int getBulletsPerShoot() {
-		return 1;
+	public SoundEvent getShootSound() {
+		return SoundRegistries.FLINTLOCK_RIFLE_SHOOT.get();
 	}
-	
+
 }

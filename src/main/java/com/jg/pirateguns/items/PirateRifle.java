@@ -46,4 +46,9 @@ public class PirateRifle extends GunItem {
 		return true;
 	}
 
+	@Override
+	public int getBulletsPerShoot() {
+		return 1;
+	}
+	
 }

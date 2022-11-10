@@ -78,7 +78,7 @@ public abstract class GunModel {
 	
 	public void shoot(Player player, ItemStack stack) {
 		PirateGuns.channel.sendToServer(new ShootMessage(player.getYRot(), 
-				player.getXRot(), getShootSound().getRegistryName().toString()));
+				player.getXRot(), gun.getShootSound().getRegistryName().toString()));
 		markChanges();
 	}
 	
@@ -196,6 +196,8 @@ public abstract class GunModel {
 		animator.update();
 	}
 	
+	public abstract float getKnockback();
+	
 	public abstract void render(LocalPlayer player, ItemStack stack, MultiBufferSource buffer, PoseStack matrix, int light);
 	
 	public abstract void reload(Player player, ItemStack stack);
@@ -205,6 +207,5 @@ public abstract class GunModel {
 	public abstract List<GunModelPart> getGunParts();
 	
 	public abstract GunModelPart getGunModelPart();
-	
-	public abstract SoundEvent getShootSound();
+
 }

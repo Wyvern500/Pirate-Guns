@@ -5,6 +5,8 @@ import org.lwjgl.glfw.GLFW;
 import com.jg.pirateguns.PirateGuns;
 import com.jg.pirateguns.animations.gunmodels.PiratePistolGunModel;
 import com.jg.pirateguns.animations.gunmodels.PirateRifleGunModel;
+import com.jg.pirateguns.animations.gunmodels.TrabucoGunModel;
+import com.jg.pirateguns.client.events.RegisterEasingsEvent;
 import com.jg.pirateguns.client.events.RegisterGunModelsEvent;
 import com.jg.pirateguns.client.models.entities.CanonModel;
 import com.jg.pirateguns.client.rendering.RenderHelper;
@@ -37,8 +39,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.client.ClientRegistry;
 import net.minecraftforge.client.event.EntityRenderersEvent.RegisterLayerDefinitions;
+import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.client.gui.ForgeIngameGui;
+import net.minecraftforge.client.event.FOVModifierEvent;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -78,7 +82,6 @@ public class ClientEventHandler {
 		ClientRegistry.registerKeyBinding(SWITCH);
 		ClientRegistry.registerKeyBinding(RELOAD);
 		ClientRegistry.registerKeyBinding(LOOKANIM);
-
 	}
 
 	public static void registerModEventListeners(IEventBus bus) {
@@ -93,8 +96,10 @@ public class ClientEventHandler {
 		bus.addListener(ClientEventHandler::handleMouse);
 		bus.addListener(ClientEventHandler::handleRawMouse);
 		bus.addListener(ClientEventHandler::registerGunModels);
+		bus.addListener(ClientEventHandler::registerEasings);
 		bus.addListener(ClientEventHandler::renderOverlayPre);
 		bus.addListener(ClientEventHandler::renderOverlayPost);
+		bus.addListener(ClientEventHandler::scopeModifier);
 	}
 
 	// Models
@@ -102,6 +107,7 @@ public class ClientEventHandler {
 	private static void modelRegistry(ModelRegistryEvent e) {
 		ForgeModelBakery.addSpecialModel(new ModelResourceLocation(Paths.PPHAMMER, "inventory"));
 		ForgeModelBakery.addSpecialModel(new ModelResourceLocation(Paths.PRHAMMER, "inventory"));
+		ForgeModelBakery.addSpecialModel(new ModelResourceLocation(Paths.THAMMER, "inventory"));
 	}
 
 	private static void registerLayerDefinitions(RegisterLayerDefinitions e) {
@@ -123,6 +129,20 @@ public class ClientEventHandler {
 			}
 		}
 	}
+	
+	public static void scopeModifier(EntityViewRenderEvent.FieldOfView e) {
+		Player player = mc.player;
+		if (player == null)
+			return;
+		if (player.getMainHandItem().getItem() instanceof GunItem) {
+			if(((GunItem)player.getMainHandItem().getItem()).hasScope()) {
+				if(client.getAimHandler().getProgress() > 0.5f) {
+					e.setFOV((float)Mth.lerp((client.getAimHandler().getProgress()-0.5f)/0.5f, 
+							Minecraft.getInstance().options.fov, 20));
+				}
+			}
+		}
+	}
 
 	// Rendering Overlay
 
@@ -133,7 +153,7 @@ public class ClientEventHandler {
 		if (player.getMainHandItem().getItem() instanceof GunItem) {
 			if (e.getOverlay() == ForgeIngameGui.CROSSHAIR_ELEMENT) {
 				if (mc.options.getCameraType().isFirstPerson()) {
-					e.setCanceled(true);
+					//e.setCanceled(true);
 				}
 			}
 
@@ -145,10 +165,12 @@ public class ClientEventHandler {
 		if (player == null)
 			return;
 		if (player.getMainHandItem().getItem() instanceof GunItem) {
-			if(((GunItem)player.getMainHandItem().getItem()).hasScope())
-			if (e.getType() == ElementType.ALL) {
-				if(client.getAimHandler().getProgress() > 0.5f) {
-					RenderHelper.renderScopeOverlay(client.getAimHandler().getProgress());
+			if(((GunItem)player.getMainHandItem().getItem()).hasScope()) {
+				if (e.getType() == ElementType.ALL) {
+					if(client.getAimHandler().getProgress() > 0.5f) {
+						RenderHelper.renderScopeOverlay(
+								client.getAimHandler().getProgress());
+					}
 				}
 			}
 		}
@@ -185,6 +207,92 @@ public class ClientEventHandler {
 		// Registering GunModels
 		GunModelsHandler.register(Paths.PP, new PiratePistolGunModel(client));
 		GunModelsHandler.register(Paths.PR, new PirateRifleGunModel(client));
+		GunModelsHandler.register(Paths.T, new TrabucoGunModel(client));
+	}
+	
+	private static void registerEasings(RegisterEasingsEvent e){
+		e.register("easeInSine", (x) -> (float)(1 - Math.cos((x * Math.PI) / 2)));
+		e.register("easeOutSine", (x) -> (float)(Math.sin((x * Math.PI) / 2)));
+		e.register("easeInOutSine", (x) -> (float)(-(Math.cos(Math.PI * x) - 1) / 2));
+		
+		e.register("easeInQuad", (x) -> (float)(x * x));
+		e.register("easeOutQuad", (x) -> (float)(1 - (1 - x) * (1 - x)));
+		e.register("easeInOutQuad", (x) -> (float)(x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2));
+		
+		e.register("easeInCubic", (x) -> (float)(x * x * x));
+		e.register("easeOutCubic", (x) -> (float)(1 - Math.pow(1 - x, 3)));
+		e.register("easeInOutCubic", (x) -> (float)(x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2));
+		
+		e.register("easeInQuart", (x) -> (float)(x * x * x * x));
+		e.register("easeOutQuart", (x) -> (float)(1 - Math.pow(1 - x, 4)));
+		e.register("easeInOutQuart", (x) -> (float)(x < 0.5 ? 8 * x * x * x * x : 1 - Math.pow(-2 * x + 2, 4) / 2));
+		
+		e.register("easeInQuint", (x) -> (float)(x * x * x * x * x));
+		e.register("easeOutQuint", (x) -> (float)(1 - Math.pow(1 - x, 5)));
+		e.register("easeInOutQuint", (x) -> (float)(x < 0.5 ? 16 * x * x * x * x * x : 1 - Math.pow(-2 * x + 2, 5) / 2));
+		
+		e.register("easeInExpo", (x) -> (float)(x == 0 ? 0 : Math.pow(2, 10 * x - 10)));
+		e.register("easeOutExpo", (x) -> (float)(x == 1 ? 1 : 1 - Math.pow(2, -10 * x)));
+		e.register("easeInOutExpo", (x) -> (float)(x == 0
+				  ? 0
+				  : x == 1
+				  ? 1
+			      : x < 0.5 ? Math.pow(2, 20 * x - 10) / 2
+				  : (2 - Math.pow(2, -20 * x + 10)) / 2));
+		
+		e.register("easeInCirc", (x) -> (float)(1 - Math.sqrt(1 - Math.pow(x, 2))));
+		e.register("easeOutCirc", (x) -> (float)(Math.sqrt(1 - Math.pow(x - 1, 2))));
+		e.register("easeInOutCirc", (x) -> (float)(x < 0.5
+				  ? (1 - Math.sqrt(1 - Math.pow(2 * x, 2))) / 2
+						  : (Math.sqrt(1 - Math.pow(-2 * x + 2, 2)) + 1) / 2));
+		
+		e.register("easeInBack", (x) -> (float)(2.70158 * x * x * x - 1.70158f * x * x));
+		e.register("easeOutBack", (x) -> (float)(1 + 2.70158 * Math.pow(x - 1, 3) + 1.70158 * Math.pow(x - 1, 2)));
+		e.register("easeInOutBack", (x) -> (float)(x < 0.5
+				  ? (Math.pow(2 * x, 2) * ((2.5949095f + 1) * 2 * x - 2.5949095f)) / 2
+						  : (Math.pow(2 * x - 2, 2) * ((2.5949095f + 1) * (x * 2 - 2) + 2.5949095f) + 2) / 2));
+		
+		e.register("easeInElastic", (x) -> (float)(x == 0
+				  ? 0
+				  : x == 1
+				  ? 1
+				  : -Math.pow(2, 10 * x - 10) * Math.sin((x * 10 - 10.75) 
+						  * ((2 * Math.PI) / 3))));
+		e.register("easeOutElastic", (x) -> (float)(x == 0
+				  ? 0
+				  : x == 1
+				  ? 1
+				  : Math.pow(2, -10 * x) * Math.sin((x * 10 - 0.75f) * 
+						  ((2 * Math.PI) / 3)) + 1));
+		e.register("easeInOutElastic", (x) -> (float)(x == 0
+				  ? 0
+				  : x == 1
+				  ? 1
+				  : x < 0.5
+				  ? -(Math.pow(2, 20 * x - 10) * Math.sin((20 * x - 11.125) * 
+						  ((2 * Math.PI) / 4.5))) / 2
+				  : (Math.pow(2, -20 * x + 10) * Math.sin((20 * x - 11.125) * 
+						  ((2 * Math.PI) / 4.5))) / 2 + 1));
+		
+		e.register("easeInBounce", (x) -> (float)(1 - e.getEasing("easeOutBounce").get(1 - x)));
+		e.register("easeOutBounce", (x) -> {
+			float n1 = 7.5625f;
+			float d1 = 2.75f;
+			
+			if (x < 1 / d1) {
+			    return n1 * x * x;
+			} else if (x < 2 / d1) {
+			    return (float)(n1 * (x -= 1.5 / d1) * x + 0.75);
+			} else if (x < 2.5 / d1) {
+			    return (float)(n1 * (x -= 2.25 / d1) * x + 0.9375);
+			} else {
+			    return (float)(n1 * (x -= 2.625 / d1) * x + 0.984375);
+			}
+		});
+		e.register("easeInOutBounce", (x) -> (float)(x < 0.5
+				  ? (1 - e.getEasing("easeOutBounce").get(1 - 2 * x)) / 2
+						  : (1 + e.getEasing("easeOutBounce").get(2 * x - 1)) / 2));
+		LogUtils.getLogger().info("Registering easings");
 	}
 
 	private static void clientTick(ClientTickEvent e) {
@@ -196,6 +304,7 @@ public class ClientEventHandler {
 					LogUtils.getLogger().info("" + ForgeRegistries.ITEMS.getValue(new ResourceLocation(Paths.PP))
 							.getRegistryName().toString());
 					MinecraftForge.EVENT_BUS.post(new RegisterGunModelsEvent());
+					MinecraftForge.EVENT_BUS.post(new RegisterEasingsEvent());
 					client.init = true;
 				}
 				ItemStack stack = player.getMainHandItem();
@@ -226,7 +335,8 @@ public class ClientEventHandler {
 		if (screen == null || screen instanceof AnimationScreen || screen instanceof GunPartsScreen) {
 			boolean animEditFocused = false;
 			if (screen instanceof AnimationScreen) {
-				animEditFocused = ((AnimationScreen) screen).getEditBoxes().get(6).isFocused();
+				animEditFocused = ((AnimationScreen) screen).getEditBoxes().get(6).isFocused()
+						|| ((AnimationScreen) screen).getEditBoxes().get(9).isFocused();
 			}
 			if (animEditFocused)
 				return;
@@ -237,6 +347,7 @@ public class ClientEventHandler {
 				if (stack.getItem() instanceof GunItem) {
 					if (client.getGunModel() == null)
 						return;
+					//LogUtils.getLogger().info("Key: " + e.getKey());
 					if (e.getAction() == GLFW.GLFW_PRESS) {
 						if (RELOAD.getKey().getValue() == e.getKey()) {
 							// PirateGuns.channel.sendToServer(new LoadBulletMessage(true));
@@ -256,6 +367,8 @@ public class ClientEventHandler {
 						} else if (DISPLAY.getKey().getValue() == e.getKey()) {
 							client.display = !client.display;
 							LogUtils.getLogger().info("Display: " + client.display);
+						} else if(e.getKey() == 89) {
+							client.getGunModel().setShouldUpdateAnimation(true);
 						}
 					}
 					if (LEFT.getKey().getValue() == e.getKey()) {
