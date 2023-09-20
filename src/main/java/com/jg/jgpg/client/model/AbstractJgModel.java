@@ -14,6 +14,7 @@ import com.jg.jgpg.client.animations.Transform;
 import com.jg.jgpg.client.handler.ClientHandler;
 import com.jg.jgpg.utils.LogUtils;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -43,7 +44,7 @@ public abstract class AbstractJgModel {
 	public void traslateRotate(String part, PoseStack matrix) {
 		Transform combined = parts.get(part).getCombined();
 		matrix.translate(combined.pos[0], combined.pos[1], combined.pos[2]);
-		matrix.mulPose(new Quaternionf(combined.rot[0], combined.rot[1], combined.rot[2], 1.0f));
+		matrix.mulPose(new Quaternionf().rotationXYZ(combined.rot[0], combined.rot[1], combined.rot[2]));
 	}
 	
 	public void traslateRotate(JgModelPart part, PoseStack matrix) {

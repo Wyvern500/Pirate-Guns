@@ -9,14 +9,19 @@ import com.jg.jgpg.client.model.JgModelPart;
 import com.jg.jgpg.client.render.RenderHelper;
 import com.jg.jgpg.utils.LogUtils;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.client.RenderTypeHelper;
 
 public class PiratePistolModel extends AbstractJgModel {
 
@@ -29,9 +34,11 @@ public class PiratePistolModel extends AbstractJgModel {
 	@Override
 	public void initParts() {
 		
-		addPart(new JgModelPart("gun", 0, 0, 0, 0, 0, 0, 0, 0));
+		//addPart(new JgModelPart("gun", 0, 0, 0, 0, 0, 0, 0, 0));
+		addPart(new JgModelPart("gun", 0.8f, -0.7f, -1.4f, 0.100000136f, 0, 0, 0, 0));
 		addPart(new JgModelPart("leftarm", 0, 0, 0, 0, 0, 0, 0, 0));
-		addPart(new JgModelPart("rightarm", 0, 0, 0, 0, 0, 0, 0, 0));
+		//addPart(new JgModelPart("rightarm", 0, 0, 0, 0, 0, 0, 0, 0));
+		addPart(new JgModelPart("rightarm", -0.14f, -0.04f, -0.17f, -0.5f, 0.2f, 0.6f, 0, 0));
 		addPart(new JgModelPart("all", 0, 0, 0, 0, 0, 0, 0, 0));
 		
 		TEST = new Animation("Test")
@@ -68,9 +75,18 @@ public class PiratePistolModel extends AbstractJgModel {
 		matrix.popPose();
 		matrix.pushPose();
 		traslateRotate("gun", matrix);
-		Minecraft.getInstance().getItemRenderer().render(stack, ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, 
+		BakedModel model = Minecraft.getInstance().getItemRenderer().getItemModelShaper().getItemModel(stack);
+		model = net.minecraftforge.client.ForgeHooksClient.handleCameraTransforms(matrix, model, 
+				ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, false);
+		RenderType type = RenderTypeHelper.getFallbackItemRenderType(stack, model, false);
+		VertexConsumer vertexConsumer = ItemRenderer.getFoilBuffer(buffer, type, true, false);
+        matrix.translate(-0.5F, -0.5F, -0.5F);
+		Minecraft.getInstance().getItemRenderer().renderModelLists(model, stack, light, 
+				OverlayTexture.NO_OVERLAY, matrix, vertexConsumer);
+		//ItemRenderer
+		/*Minecraft.getInstance().getItemRenderer().render(stack, ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, 
 				false, matrix, buffer, light, OverlayTexture.NO_OVERLAY, Minecraft.getInstance()
-				.getItemRenderer().getItemModelShaper().getItemModel(stack));
+				.getItemRenderer().getItemModelShaper().getItemModel(stack));*/
 		matrix.popPose();
 		matrix.popPose();
 	}

@@ -17,7 +17,7 @@ public class Transform {
 	
 	public Transform(Transform other) {
 		this.pos = new float[] { other.pos[0], other.pos[1], other.pos[2] };
-		this.rot = new float[] { other.rot[0], other.rot[1], other.pos[2] };
+		this.rot = new float[] { other.rot[0], other.rot[1], other.rot[2] };
 	}
 	
 	public Transform(float x, float y, float z, float rx, float ry, float rz) {

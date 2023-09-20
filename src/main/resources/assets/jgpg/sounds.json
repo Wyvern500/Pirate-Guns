@@ -1,0 +1,112 @@
+{
+    "flintlock_pistol_shoot": {
+        "category": "neutral",
+        "subtitle": "flintlock_pistol_shoot",
+        "sounds": [
+          {
+            "name": "jgpg:neutral/guns/flintlock_pistol_shoot",
+            "stream": false
+          }
+        ]
+    },
+    "flintlock_rifle_shoot": {
+        "category": "neutral",
+        "subtitle": "flintlock_rifle_shoot",
+        "sounds": [
+          {
+            "name": "jgpg:neutral/guns/flintlock_rifle_shoot",
+            "stream": false
+          }
+        ]
+    },
+    "hammer_back": {
+        "category": "neutral",
+        "subtitle": "hammer_back",
+        "sounds": [
+          {
+            "name": "jgpg:neutral/guns/hammer_back",
+            "stream": false
+          }
+        ]
+    },
+    "multiple_bullets_hitting_metal": {
+        "category": "neutral",
+        "subtitle": "multiple_bullets_hitting_metal",
+        "sounds": [
+          {
+            "name": "jgpg:neutral/guns/multiple_bullets_hitting_metal",
+            "stream": false
+          }
+        ]
+    },
+    "small_bullet_hitting_metal": {
+        "category": "neutral",
+        "subtitle": "small_bullet_hitting_metal",
+        "sounds": [
+          {
+            "name": "jgpg:neutral/guns/small_ball_hitting_metal",
+            "stream": false
+          }
+        ]
+    },
+    "metalic_ding": {
+        "category": "neutral",
+        "subtitle": "metalic_ding",
+        "sounds": [
+          {
+            "name": "jgpg:neutral/guns/metalic_ding",
+            "stream": false
+          }
+        ]
+    },
+    "gunpowder_dust_1": {
+        "category": "neutral",
+        "subtitle": "gunpowder_dust_1",
+        "sounds": [
+          {
+            "name": "jgpg:neutral/guns/gunpowder_dust_1",
+            "stream": false
+          }
+        ]
+    },
+    "gunpowder_dust_2": {
+        "category": "neutral",
+        "subtitle": "gunpowder_dust_2",
+        "sounds": [
+          {
+            "name": "jgpg:neutral/guns/gunpowder_dust_2",
+            "stream": false
+          }
+        ]
+    },
+    "inserting_bullet": {
+        "category": "neutral",
+        "subtitle": "inserting_bullet",
+        "sounds": [
+          {
+            "name": "jgpg:neutral/guns/inserting_bullet",
+            "stream": false
+          }
+        ]
+    },
+    "gun_hit_sound": {
+        "category": "neutral",
+        "subtitle": "gun_hit_sound",
+        "sounds": [
+          {
+            "name": "jgpg:neutral/guns/gun_hit_sound",
+            "stream": false
+          }
+        ]
+    },
+    "gun_moving_sound": {
+        "category": "neutral",
+        "subtitle": "gun_moving_sound",
+        "sounds": [
+          {
+            "name": "jgpg:neutral/guns/gun_moving_sound",
+            "stream": false
+          }
+        ]
+    }
+}

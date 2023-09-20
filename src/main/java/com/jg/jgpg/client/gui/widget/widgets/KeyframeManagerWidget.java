@@ -19,6 +19,7 @@ import com.jg.jgpg.client.animations.PreviewTransformData;
 import com.jg.jgpg.client.gui.AnimationGui;
 import com.jg.jgpg.client.gui.widget.JgAbstractWidget;
 import com.jg.jgpg.client.gui.widget.widgets.JgList.AbstractJgListItem;
+import com.jg.jgpg.client.handlers.EasingHandler;
 import com.jg.jgpg.client.model.AbstractJgModel;
 import com.jg.jgpg.client.model.JgModelPart;
 import com.jg.jgpg.client.render.RenderHelper;
@@ -352,7 +353,7 @@ public class KeyframeManagerWidget extends JgAbstractWidget {
 				if(finalText.length() == 0) {
 					finalText = "empty";
 				}
-				if(!parent.getClient().getEasingHandler().has(finalText)) {
+				if(!EasingHandler.INSTANCE.has(finalText)) {
 					finalText = "empty";
 				}
 				for(TransformData data : selectedTransformDatas) {

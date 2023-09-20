@@ -6,6 +6,7 @@ import com.jg.jgpg.proxy.ClientProxy;
 import com.jg.jgpg.proxy.IProxy;
 import com.jg.jgpg.proxy.ServerProxy;
 import com.jg.jgpg.registries.ItemRegistries;
+import com.jg.jgpg.registries.SoundRegistries;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
@@ -50,9 +51,8 @@ public class PirateGuns {
         PirateGuns.proxy.registerModEventListeners(bus);
         
         //Register mod stuff (Items, Entities, Containers, etc.)
-        /*SoundRegistries.SOUNDS.register(bus);
+        SoundRegistries.SOUNDS.register(bus);
         ItemRegistries.ITEMS.register(bus);
-        EntityRegistries.ENTITIES.register(bus);*/
         
         bus = MinecraftForge.EVENT_BUS;
         PirateGuns.proxy.registerForgeEventListeners(bus);

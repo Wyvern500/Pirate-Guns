@@ -2,6 +2,9 @@ package com.jg.jgpg.registries;
 
 import com.google.common.collect.Sets;
 import com.jg.jgpg.PirateGuns;
+import com.jg.jgpg.item.items.PiratePistol;
+import com.jg.jgpg.item.items.PirateRifle;
+import com.jg.jgpg.item.items.Trabuco;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -28,14 +31,14 @@ public class ItemRegistries {
 			ResourceKey.create(Registries.CREATIVE_MODE_TAB,
 					new ResourceLocation(PirateGuns.MODID, "pirateguns"));
 
-	/*public static final RegistryObject<Item> PIRATEPISTOL = regAdd("pirate_pistol",
+	public static final RegistryObject<Item> PIRATEPISTOL = regAdd("pirate_pistol",
 			PiratePistol::new);
 	
 	public static final RegistryObject<Item> PIRATERIFLE = regAdd("pirate_rifle",
 			PirateRifle::new);
 	
 	public static final RegistryObject<Item> TRABUCO = regAdd("trabuco",
-			Trabuco::new);*/
+			Trabuco::new);
 	
 	public static final RegistryObject<Item> MUSKET_BULLET = regAdd("musket_bullet", 
 			() -> new Item(new Item.Properties().stacksTo(64)));
@@ -49,7 +52,7 @@ public class ItemRegistries {
 	}
 
 	public static void creativeModeTabRegister(RegisterEvent event) {
-		/*event.register(Registries.CREATIVE_MODE_TAB, helper -> {
+		event.register(Registries.CREATIVE_MODE_TAB, helper -> {
 			helper.register(MAIN, CreativeModeTab.builder().icon(() ->
 							new ItemStack(Items.GUNPOWDER))//new ItemStack(ItemRegistries.PIRATERIFLE.get()))
 					.title(Component.translatable("pirateguns"))
@@ -59,14 +62,14 @@ public class ItemRegistries {
 						});
 					})
 					.build());
-		});*/
+		});
 	}
 
 	public static void buildCreativeModeTab(BuildCreativeModeTabContentsEvent event) {
 		if(event.getTabKey() == MAIN){
-			/*event.accept(PIRATEPISTOL);
+			event.accept(PIRATEPISTOL);
 			event.accept(PIRATERIFLE);
-			event.accept(TRABUCO);*/
+			event.accept(TRABUCO);
 			event.accept(MUSKET_BULLET);
 			event.accept(TRABUCO_BULLET);
 		}

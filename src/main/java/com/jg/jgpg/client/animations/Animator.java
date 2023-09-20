@@ -4,6 +4,7 @@ import java.util.Map.Entry;
 
 import com.jg.jgpg.client.gui.AnimationGui;
 import com.jg.jgpg.client.handler.ClientHandler;
+import com.jg.jgpg.client.handlers.EasingHandler;
 import com.jg.jgpg.client.model.AbstractJgModel;
 import com.jg.jgpg.client.model.JgModelPart;
 import com.jg.jgpg.utils.LogUtils;
@@ -19,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 public class Animator {
-
+	
 	AbstractJgModel model;
 	
 	Animation current;
@@ -213,7 +214,7 @@ public class Animator {
 			}
 			
 			// KeyframeTransformPart Easing
-			float kfTransformPartProg = model.getHandler().getEasingHandler()
+			float kfTransformPartProg = EasingHandler.INSTANCE
 					.getEasing(e.getValue().getEasing()).get(prog);
 			
 			e.getKey().getTransform().pos[0] = MathUtils.lerp(prevTr
@@ -247,7 +248,7 @@ public class Animator {
 			}
 			
 			// KeyframeTransformPart Easing
-			float kfTransformPartProg = model.getHandler().getEasingHandler()
+			float kfTransformPartProg = EasingHandler.INSTANCE
 					.getEasing(e.getValue().getEasing()).get(prog);
 			
 			e.getKey().getTransform().pos[0] = MathUtils.rotLerp(prevRt
