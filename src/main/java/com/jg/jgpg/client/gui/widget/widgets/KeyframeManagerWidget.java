@@ -1,6 +1,7 @@
 package com.jg.jgpg.client.gui.widget.widgets;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
@@ -37,7 +38,7 @@ public class KeyframeManagerWidget extends JgAbstractWidget {
 	
 	List<JgAbstractWidget> widgets;
 	List<PreviewTransformData> previewTransforms;
-	Vector<TransformData> selectedTransformDatas;
+	List<TransformData> selectedTransformDatas;
 	
 	ScrollbarWidget verticalScrollbar;
 	ScrollbarWidget horizontalScrollbar;
@@ -84,7 +85,7 @@ public class KeyframeManagerWidget extends JgAbstractWidget {
 		widgets.add(horizontalScrollbar);
 		widgets.add(items);
 		widgets.add(tickManager);
-		selectedTransformDatas = new Vector<>();
+		selectedTransformDatas = new ArrayList<>();
 		
 		keys = new boolean[400];
 		
@@ -366,6 +367,46 @@ public class KeyframeManagerWidget extends JgAbstractWidget {
 			}
 			updateStuff();
 			break;
+		case 4:
+			if(!selectedTransformDatas.isEmpty()) {
+				String finalText = "";
+				finalText = field.getValue().replaceAll(
+				          "[^0-9]", "");
+				if(finalText.length() == 0) {
+					finalText = "0";
+				}
+				int tick = Math.max(0, Integer.parseInt(finalText));
+				// Getting the tick of the first transform data so i will calculate their ticks based on first
+				// tick
+				int firstTick = selectedTransformDatas.get(0).getKf().getTick();
+				Collections.sort(selectedTransformDatas, (i1, i2) -> Integer.compare(i1.getKf().getTick(), 
+						i2.getKf().getTick()));
+				for(TransformData data : selectedTransformDatas) {
+					int dif = data.getKf().getTick() - firstTick;
+					int newTick = tick - dif;
+					if(newTick < 0) {
+						LogUtils.log("KeyframeManagerWidget", "Tick cannot be less than 0. lowest tick: " 
+								+ data.getKf().getTick());
+						break;
+					}
+					
+					Keyframe kf = getKeyframeOnTick(newTick);
+					
+					if(kf != null) { // The keyframe exists
+						if(data.isRot()) {
+							kf.getRotations().put(data.getParent().getPart(), 
+									new KeyframeTransformData(data.getValue(), data.getEasing()));
+						} else {
+							kf.getTraslations().put(data.getParent().getPart(), 
+									new KeyframeTransformData(data.getValue(), data.getEasing()));
+						}
+					} else {
+						
+					}
+				}
+			}
+			updateStuff();
+			break;
 		}
 	}
 	
@@ -566,7 +607,7 @@ public class KeyframeManagerWidget extends JgAbstractWidget {
 		return items;
 	}
 
-	public Vector<TransformData> getSelectedTransformDatas() {
+	public List<TransformData> getSelectedTransformDatas() {
 		return selectedTransformDatas;
 	}
 

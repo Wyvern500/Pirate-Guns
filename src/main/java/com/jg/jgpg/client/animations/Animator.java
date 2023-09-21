@@ -12,6 +12,7 @@ import com.jg.jgpg.utils.MathUtils;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.ItemInHandRenderer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,6 +50,10 @@ public class Animator {
 	}
 	
 	public void tick() {
+		/*LogUtils.log("Animator", "DeltaFrameTime: " + Minecraft.getInstance().getDeltaFrameTime() + 
+				" FrameTime: " + Minecraft.getInstance().getFrameTime() + " PartialTick: " + 
+				Minecraft.getInstance().getPartialTick() + " FrameTimeNs" + 
+				Minecraft.getInstance().getFrameTimeNs());*/
 		if(model != null) {
 			if(current != null) {
 				if(play) {
@@ -61,7 +66,7 @@ public class Animator {
 							}
 							
 							prevTick = tick;
-							tick += 1f;
+							tick += Minecraft.getInstance().getDeltaFrameTime() * 2f;
 							
 							if(tick >= current.getDuration()) {
 								tick = current.getDuration();
@@ -190,21 +195,19 @@ public class Animator {
 	public void lerpValues() {
 		model.onAnimationTick(current, prevTick, tick);
 		
-		/*
-		 (prosPrevTick + (prosTick - prosPrevTick) * 
-	            		ClientHandler.partialTicks) / kf.dur;
-		 */
 		float currentTick = (tick - last.getTick());
 		float currentPrevTick = (prevTick - last.getTick());
 		int duration = currentKf.getTick() - last.getTick();
-		float partial = Minecraft.getInstance().getPartialTick();
-		float prog = ((currentPrevTick + (currentTick - currentPrevTick) * partial) / duration);
-		//float prog = (currentTick / duration);
-		//float other = 
+		float partialTick = Minecraft.getInstance().getPartialTick();
+		float prog = ((currentPrevTick + (currentTick - currentPrevTick) * partialTick) / duration);
+		if(tick == currentKf.tick) {
+			prog = 1.0f;
+		}
 		
-		LogUtils.log("Animator", "Prog: " + prog + " other: " + currentTick  + " currentPrevTick: " + 
-				currentPrevTick + " dur: " + duration + " other" 
-				+ (((currentPrevTick + (currentTick - currentPrevTick) * partial) / duration)));
+		/*LogUtils.log("Animator", "Prog: " + prog + " currentTick: " + currentTick  + " currentPrevTick: " + 
+				currentPrevTick + " dur: " + duration + " dif: " + dif + " test: " + 
+				((currentPrevTick + dif * partialTick) / duration) + " pTick: " + partialTick + 
+				" test2: " + MathUtils.lerp(currentPrevTick, currentTick, partialTick));*/
 		
 		Map<JgModelPart, KeyframeTransformData> currentTr = data.getCurrentTr();
 		Map<JgModelPart, KeyframeTransformData> prevTr = data.getPrevTr();
@@ -251,15 +254,15 @@ public class Animator {
 			float kfTransformPartProg = EasingHandler.INSTANCE
 					.getEasing(e.getValue().getEasing()).get(prog);
 			
-			e.getKey().getTransform().pos[0] = MathUtils.rotLerp(prevRt
+			e.getKey().getTransform().rot[0] = MathUtils.rotLerp(prevRt
 					.get(e.getKey()).getVal()[0], 
 					currentRt
 					.get(e.getKey()).getVal()[0], kfTransformPartProg);
-			e.getKey().getTransform().pos[1] = MathUtils.rotLerp(prevRt
+			e.getKey().getTransform().rot[1] = MathUtils.rotLerp(prevRt
 					.get(e.getKey()).getVal()[1], 
 					currentRt
 					.get(e.getKey()).getVal()[1], kfTransformPartProg);
-			e.getKey().getTransform().pos[2] = MathUtils.rotLerp(prevRt
+			e.getKey().getTransform().rot[2] = MathUtils.rotLerp(prevRt
 					.get(e.getKey()).getVal()[2], 
 					currentRt
 					.get(e.getKey()).getVal()[2], kfTransformPartProg);
@@ -322,7 +325,7 @@ public class Animator {
 						+ "\"" + entry.getValue().getEasing() + "\"" + ")\n";
 			}
 			for(Entry<JgModelPart, KeyframeTransformData> entry : kf.getRotations().entrySet()) {
-				all += ".rotate(getPart(\"" + entry.getKey().getName() + ")" + ", " 
+				all += ".rotate(getPart(\"" + entry.getKey().getName() + "\")" + ", " 
 						+ entry.getValue().getVal()[0] + "f, " + entry.getValue().getVal()[1] + "f, " 
 						+ entry.getValue().getVal()[2] + "f, "
 						+ "\"" + entry.getValue().getEasing() + "\"" + ")\n";

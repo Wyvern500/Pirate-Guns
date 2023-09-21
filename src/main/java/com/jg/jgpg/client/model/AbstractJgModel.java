@@ -72,23 +72,17 @@ public abstract class AbstractJgModel {
 	}
 	
 	public void setupModelPartsForAnimation(Keyframe first) {
+		/*
 		// Setting transforms to the first keyframe when setting an animation
 		for(Entry<JgModelPart, KeyframeTransformData> e : first.getTraslations().entrySet()) {
-			/*LogUtils.log("AbstractJgModel", "before " + " part: " + e.getKey().getName() + " x: " + e.getKey()
-				.getTransform().pos[0] + " y: " + e.getKey().getTransform().pos[1]);*/
 			e.getKey().getTransform().pos[0] = e.getValue().getVal()[0];
 			e.getKey().getTransform().pos[1] = e.getValue().getVal()[1];
-			//LogUtils.log("AbstractJgModel", "x: " + e.getValue()[0] + " y: " + e.getValue()[1]);
-			//e.getKey().getTransform().pos[2] = e.getValue()[2];
-			/*LogUtils.log("AbstractJgModel", "after " + " part: " + e.getKey().getName() + " x: " + e.getKey()
-			.getTransform().pos[0] + " y: " + e.getKey().getTransform().pos[1]);*/
 		}
 		// Setting transforms to the first keyframe when setting an animation
 		for(Entry<JgModelPart, KeyframeTransformData> e : first.getRotations().entrySet()) {
 			e.getKey().getTransform().rot[0] = e.getValue().getVal()[0];
 			e.getKey().getTransform().rot[1] = e.getValue().getVal()[1];
-			//e.getKey().getTransform().rot[2] = e.getValue()[2];
-		}
+		}*/
 		// This is becuase if the first kf doesnt have transform data for a part, then i have to create it
 		// So it wont start in a strange position
 		for(Entry<String, JgModelPart> e : parts.entrySet()) {

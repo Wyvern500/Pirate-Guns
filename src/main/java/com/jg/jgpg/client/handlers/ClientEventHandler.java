@@ -97,6 +97,7 @@ public class ClientEventHandler {
 			if(player.getMainHandItem().getItem() instanceof JgGunItem) {
 				e.setCanceled(true);
 				if(e.getHand() == InteractionHand.MAIN_HAND) {
+					client.tick(player, player.getMainHandItem(), NBTUtils.getId(player.getMainHandItem()));
 					client.render(player, player.getMainHandItem(), e.getPoseStack(), e.getMultiBufferSource(), 
 							e.getPackedLight());
 				}
@@ -121,7 +122,7 @@ public class ClientEventHandler {
 			}
 			
 			if(stack.getItem() instanceof JgGunItem) {
-				client.tick(player, stack, id);
+				//client.tick(player, stack, id);
 			}
 		}
 	}

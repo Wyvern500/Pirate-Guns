@@ -35,6 +35,7 @@ public class AnimationGui extends Screen {
 	JgEditBox y;
 	JgEditBox z;
 	JgEditBox easing;
+	JgEditBox transformTick;
 	
 	JgList animations;
 	
@@ -74,6 +75,11 @@ public class AnimationGui extends Screen {
 				0, 60, 100, 20, Component.translatable("")));
 		easing.setResponder((s) -> {
 			kfm.handleValueChange(3, easing, s);
+		});
+		addRenderableWidget(transformTick = new JgEditBox(font, 
+				120, 60, 100, 20, Component.translatable("")));
+		easing.setResponder((s) -> {
+			kfm.handleValueChange(4, transformTick, s);
 		});
 		addRenderableWidget(new SimpleButton(0, 82, 30, 20, Component.translatable("Stp"), 
 				(b) -> {
@@ -259,6 +265,10 @@ public class AnimationGui extends Screen {
 
 	public JgEditBox getEasingEditBox() {
 		return easing;
+	}
+	
+	public JgEditBox getTransformTickEditBox() {
+		return transformTick;
 	}
 	
 	public static class AnimationListItem extends AbstractJgListItem {
