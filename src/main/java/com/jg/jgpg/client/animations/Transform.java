@@ -1,8 +1,5 @@
 package com.jg.jgpg.client.animations;
 
-import java.math.MathContext;
-import java.util.Arrays;
-
 import com.jg.jgpg.utils.LogUtils;
 import com.jg.jgpg.utils.MathUtils;
 
@@ -71,9 +68,19 @@ public class Transform {
 		return new Transform(this);
 	}
 	
+	public void set(float x, float y, float z, float rx, float ry, float rz) {
+		pos[0] = x;
+		pos[1] = y;
+		pos[2] = z;
+		rot[0] = rx;
+		rot[1] = ry;
+		rot[2] = rz;
+	}
+	
 	@Override
 	public String toString() {
-		return "Tr: " + Arrays.toString(pos) + " Rt: " + Arrays.toString(rot);
+		return "Tr: (" + pos[0] + "f, " + pos[1] + "f, " + pos[2] + "f" + ") Rt: (" + rot[0] + "f, " + rot[1] + 
+				"f, " + rot[2] + "f" + ")";
 	}
 	
 }

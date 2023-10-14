@@ -1,12 +1,12 @@
 package com.jg.jgpg.client.gui.widget.widgets;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.TreeMap;
-import java.util.Vector;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import org.lwjgl.glfw.GLFW;
 
@@ -20,6 +20,7 @@ import com.jg.jgpg.client.animations.PreviewTransformData;
 import com.jg.jgpg.client.gui.AnimationGui;
 import com.jg.jgpg.client.gui.widget.JgAbstractWidget;
 import com.jg.jgpg.client.gui.widget.widgets.JgList.AbstractJgListItem;
+import com.jg.jgpg.client.handlers.ClientEventHandler;
 import com.jg.jgpg.client.handlers.EasingHandler;
 import com.jg.jgpg.client.model.AbstractJgModel;
 import com.jg.jgpg.client.model.JgModelPart;
@@ -31,7 +32,6 @@ import com.jg.jgpg.utils.Utils;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 
 public class KeyframeManagerWidget extends JgAbstractWidget {
@@ -69,6 +69,14 @@ public class KeyframeManagerWidget extends JgAbstractWidget {
 	
 	boolean keyPressed;
 	
+	boolean adjustRemaining;
+	int beforeX;
+	
+	// This variable is for tracking the firstTransformTick event if the transform data changes
+	int lastFirstTick;
+	
+	boolean transformTickTextFieldFocus;
+	
 	public KeyframeManagerWidget(int x, int y, int w, int h, AnimationGui parent) {
 		super(x, y, w, h, parent);
 		widgets = new ArrayList<>();
@@ -93,6 +101,8 @@ public class KeyframeManagerWidget extends JgAbstractWidget {
 		offsetIncreaseSpeed = 0.1f;
 		
 		previewTransforms = new ArrayList<>();
+		
+		lastFirstTick = -1;
 	}
 
 	@Override
@@ -101,7 +111,26 @@ public class KeyframeManagerWidget extends JgAbstractWidget {
 			widget.tick();
 		}
 		handleOutOfRange();
-		//LogUtils.log("KfMW", "MouseX: " + Minecraft.getInstance().mouseHandler.xpos());
+		// Checking if the focus of transformTickTextField changed so i can reset the lastFirstTick value
+		if(parent.getTransformTickEditBox().isFocused() && !transformTickTextFieldFocus) {
+			focusChanged(true);
+			transformTickTextFieldFocus = true;
+		} else if(transformTickTextFieldFocus && !parent.getTransformTickEditBox().isFocused()) {
+			focusChanged(false);
+			transformTickTextFieldFocus = false;
+		}
+		if(selectedTransformDatas.isEmpty()) {
+			if(parent.getTransformTickEditBox().visible) {
+				parent.getTransformTickEditBox().setVisible(false);
+				beforeX = parent.getAdjustRemaining().getX();
+				parent.getAdjustRemaining().setX(-1000);
+			}
+		} else {
+			if(!parent.getTransformTickEditBox().visible) {
+				parent.getTransformTickEditBox().setVisible(true);
+				parent.getAdjustRemaining().setX(beforeX);
+			}
+		}
 	}
 
 	@Override
@@ -125,7 +154,6 @@ public class KeyframeManagerWidget extends JgAbstractWidget {
 				int maxTicks = ((width - startingKeyframeStuff) / tileSize);
 				
 				if(!items.getItems().isEmpty()) {
-					
 					int scaleOffset = 50;
 					float scaleMultiplier = 2.5f;
 					for(int i = offset; i < Math.min(maxTicks + offset, animDur); i++) {
@@ -138,6 +166,10 @@ public class KeyframeManagerWidget extends JgAbstractWidget {
 						gg.pose().popPose();
 					}
 				}
+				
+				gg.drawString(Minecraft.getInstance().font, "Tick: " + 
+						Math.floor(parent.getModel().getAnimator().getTick()), 
+						100, 180, Color.rgba(255, 255, 255, 255));
 			}
 		}
 	}
@@ -225,15 +257,14 @@ public class KeyframeManagerWidget extends JgAbstractWidget {
 		}
 		keyPressed = true;
 		keys[keyCode] = true;
-		LogUtils.log("KfMW", "f1: " + keyCode + " f2: " + f2 + " f3: " + f3);
+		//LogUtils.log("KfMW", "f1: " + keyCode + " f2: " + f2 + " f3: " + f3);
 		
 		// Hotkeys
 		
-		// 17 Ctrl | 68 d | 127 Supr
+		// 17 Ctrl | 68 d | 259 Del
 		if (keys[GLFW.GLFW_KEY_LEFT_CONTROL] && keys[GLFW.GLFW_KEY_D]) { // Ctrl + d
 			if (!selectedTransformDatas.isEmpty()) {
-				if(parent.getModel().getAnimator().getCurrent() == null) return super.keyPressed(keyCode, f2, 
-						f3);
+				if(parent.getModel().getAnimator().getCurrent() == null) return super.keyPressed(keyCode, f2, f3);
 				for (TransformData data : selectedTransformDatas) {
 					Keyframe selected = data.getKf();
 					Keyframe newKf = getKeyframeOnTick(selected.getTick() + 1);
@@ -259,7 +290,7 @@ public class KeyframeManagerWidget extends JgAbstractWidget {
 					updateStuff();
 				}
 			}
-		} else if (keys[GLFW.GLFW_KEY_DELETE]) { // Supr
+		} else if (keys[259]) { // Delete key
 			if (!selectedTransformDatas.isEmpty()) {
 				for (TransformData data : selectedTransformDatas) {
 					data.remove();
@@ -278,6 +309,9 @@ public class KeyframeManagerWidget extends JgAbstractWidget {
 		}
 		if(keyCode == GLFW.GLFW_KEY_LEFT_CONTROL) {
 			ctrl = false;
+		}
+		if(keyCode == GLFW.GLFW_KEY_ENTER && parent.getTransformTickEditBox().isFocused()) {
+			//parent.getTransformTickEditBox().setFocused(false);
 		}
 		keyPressed = false;
 		keys[keyCode] = false;
@@ -367,46 +401,313 @@ public class KeyframeManagerWidget extends JgAbstractWidget {
 			}
 			updateStuff();
 			break;
-		case 4:
-			if(!selectedTransformDatas.isEmpty()) {
-				String finalText = "";
-				finalText = field.getValue().replaceAll(
+		}
+	}
+	
+	public void onEditBoxEnter(JgEditBox box) {
+		handleChangeTransformTick(box);
+	}
+
+	private void focusChanged(boolean isFocused) {
+		LogUtils.log("KfMW", "isFocused changed to " + isFocused);
+		// If the user finished using the tick manager then reset lastFirstTick
+		if(!isFocused) {
+			lastFirstTick = -1;
+		}
+	}
+	
+	private void handleChangeTransformTick(JgEditBox box) {
+		if(!selectedTransformDatas.isEmpty()) {
+			String finalText = "";
+			if(!box.getValue().contains("/")) {
+				finalText = box.getValue().replaceAll(
 				          "[^0-9]", "");
 				if(finalText.length() == 0) {
 					finalText = "0";
 				}
-				int tick = Math.max(0, Integer.parseInt(finalText));
-				// Getting the tick of the first transform data so i will calculate their ticks based on first
-				// tick
-				int firstTick = selectedTransformDatas.get(0).getKf().getTick();
-				Collections.sort(selectedTransformDatas, (i1, i2) -> Integer.compare(i1.getKf().getTick(), 
-						i2.getKf().getTick()));
-				for(TransformData data : selectedTransformDatas) {
-					int dif = data.getKf().getTick() - firstTick;
-					int newTick = tick - dif;
-					if(newTick < 0) {
-						LogUtils.log("KeyframeManagerWidget", "Tick cannot be less than 0. lowest tick: " 
-								+ data.getKf().getTick());
-						break;
+				
+				if(!adjustRemaining) {
+	
+					List<TransformData> newSelectedTransforms = new ArrayList<>();
+					
+					int tick = Math.max(0, Integer.parseInt(finalText));
+					
+					// Getting the tick of the first transform data so i will calculate their ticks based on first
+					// tick
+					int firstTick = selectedTransformDatas.get(0).getKf().getTick();
+					if(lastFirstTick == -1) {
+						lastFirstTick = firstTick;
 					}
 					
-					Keyframe kf = getKeyframeOnTick(newTick);
+					// If the targetTick and the lastTick are the same then return
+					if(tick == lastFirstTick) {
+						return;
+					}
 					
-					if(kf != null) { // The keyframe exists
-						if(data.isRot()) {
-							kf.getRotations().put(data.getParent().getPart(), 
-									new KeyframeTransformData(data.getValue(), data.getEasing()));
-						} else {
-							kf.getTraslations().put(data.getParent().getPart(), 
-									new KeyframeTransformData(data.getValue(), data.getEasing()));
-						}
-					} else {
+					boolean canClean = true;
+					
+					int newLastTick = -1;
+					
+					// I do this because i dont want a transform data to have a negative tick
+					Collections.sort(selectedTransformDatas, (i1, i2) -> Integer.compare(i1.getKf().getTick(), 
+							i2.getKf().getTick()));
+					for(TransformData data : selectedTransformDatas) {
+						int dif = data.getKf().getTick() - lastFirstTick;
+						int newTick = tick + dif;
 						
+						// Getting the firstTick so even if the transformData is destroyed i still having access to the
+						// "firstTick"
+						if(firstTick == data.getKf().getTick()) {
+							newLastTick = newTick;
+						}
+						
+						if(newTick < 0) {
+							LogUtils.log("KeyframeManagerWidget", "Tick cannot be less than 0. lowest tick: " 
+									+ data.getKf().getTick());
+							canClean = false;
+							newLastTick = 0;
+							break;
+						}
+						
+						Keyframe kf = getKeyframeOnTick(newTick);
+						
+						String easing = data.getEasing();
+						
+						if(easing == null) {
+							easing = "empty";
+						} else if(easing.equals("null")) {
+							easing = "empty";
+						}
+						
+						LogUtils.log("KfMW", data.toString());
+						
+						if(kf != null) { // The keyframe exists
+							if(data.isRot()) {
+								kf.getRotations().put(data.getParent().getPart(), 
+										new KeyframeTransformData(data.getValue(), easing));
+							} else {
+								kf.getTraslations().put(data.getParent().getPart(), 
+										new KeyframeTransformData(data.getValue(), easing));
+							}
+						} else {
+							kf = new Keyframe(newTick);
+							if(data.isRot()) {
+								kf.getRotations().put(data.getParent().getPart(), 
+										new KeyframeTransformData(data.getValue(), easing));
+							} else {
+								kf.getTraslations().put(data.getParent().getPart(), 
+										new KeyframeTransformData(data.getValue(), easing));
+							}
+							data.getAnimation().addKeyframe(kf);
+						}
+						
+						newSelectedTransforms.add(new TransformData(data.getParent(), data.getAnimation(), kf, 
+								data.isRot(), data.getValue(), easing));
+						
+						data.remove();
+					}
+					
+					if(canClean) {
+					
+						// Cleaning selectedTransforms
+						selectedTransformDatas.clear();
+						
+						// Adding the newSelectedTransforms so they still selected after changing their ticks
+						for(TransformData data : newSelectedTransforms) {
+							selectedTransformDatas.add(data);
+						}
+				
+						updateStuff();
+						
+						// Setting the lastFirstTick
+						lastFirstTick = newLastTick;
+					}
+					
+					LogUtils.log("KeyframeManagerWidget", " Keyframes: " + parent.getModel().getAnimator()
+							.getCurrent().getKeyframes().toString());
+				} else {
+					parent.getModel().getAnimator().getCurrent().sort();
+					
+					int tick = Math.max(0, Integer.parseInt(finalText)); 
+					
+					TransformData first = selectedTransformDatas.get(0);
+					
+					int dif = tick - first.getKf().getTick();
+					
+					List<Keyframe> kfsToDelete = new ArrayList<>();
+					
+					int anchor = -1;
+					
+					List<Keyframe> keyframes = parent.getModel().getAnimator().getCurrent().getKeyframes();
+					
+					for(int i = 0; i < keyframes.size(); i++) {
+						Keyframe kf = keyframes.get(i);
+						// This anchor is important because we want to define the index of the source kf, so we can
+						// start working
+						if(kf.getTick() >= first.getKf().getTick() && kf.getTick() != first.getKf().getTick()) {
+							anchor = i; 
+							break;
+						}
+					}
+					
+					if(anchor != -1) {
+						
+						if(dif < 0 && anchor - 2 > 0) {
+							
+							Keyframe anchorKf = keyframes.get(anchor - 1);
+							int newTick = anchorKf.getTick() + dif;
+							for(int i = anchor - 2; i > -1; i--) {
+								Keyframe kf = keyframes.get(i);
+								LogUtils.log("KeyframeManagerWidget", "Tick: " + kf.getTick() + " newTick: " + 
+										newTick + " anchor: " + anchor + " anchorTick: " + anchorKf.getTick() 
+										+ " i: " + i + " startingIndex: " + (anchor - 2));
+								if(newTick < kf.getTick()) {
+									LogUtils.log("KeyframeManagerWidget", "Returning on Tick: " + kf.getTick() 
+										+ " newTick: " + newTick + " anchor: " + anchor + " anchorTick: " 
+										+ anchorKf.getTick() + " i: " + i + " startingIndex: " 
+										+ (anchor - 2));
+									return;
+								}
+							}
+						}
+						
+						for (int i = anchor; i < keyframes.size(); i++) {
+							Keyframe kf = keyframes.get(i);
+							int newTick = kf.getTick() + dif;
+							if (newTick < 0) { // The first keyframe tick is lower than 0
+								LogUtils.log("KfMW", "First tick is lower than 0, changes werent done");
+								return;
+							}
+							
+							if(dif < 0) {
+							
+								// Deleting repeated keyframes becuase of overlaping
+	
+								for (Keyframe kfToCompare : keyframes) {
+									// Finding the overlapped keyframe
+									if (kfToCompare.getTick() == newTick) {
+										// Setting the old missing keyfames data to the new keyframe
+										for (Entry<JgModelPart, KeyframeTransformData> entry : kfToCompare.getTraslations()
+												.entrySet()) {
+											if (!kf.getTraslations().containsKey(entry.getKey())) {
+												kf.getTraslations().put(entry.getKey(), entry.getValue());
+											}
+										}
+										for (Entry<JgModelPart, KeyframeTransformData> entry : kfToCompare.getRotations()
+												.entrySet()) {
+											if (!kf.getRotations().containsKey(entry.getKey())) {
+												kf.getRotations().put(entry.getKey(), entry.getValue());
+											}
+										}
+										// We need to delete the replaced keyframe
+										kfsToDelete.add(kfToCompare);
+										break;
+									}
+								}
+							
+							}
+
+							kf.setTick(newTick);
+
+						}
+					}
+					
+					/*if(dif > 0) {
+						// Adjusting to forward
+						
+					} else {
+						// Adjusting to backward
+						for(Keyframe kf : keyframes) {
+							int newTick = kf.getTick() + dif;
+							if(newTick < 0) { // The first keyframe tick is lower than 0
+								LogUtils.log("KfMW", "First tick is lower than 0, changes werent done");
+								return;
+							}
+							kf.setTick(newTick);
+						}
+					}*/
+					
+					// Deleting keyframes
+					
+					/*for(int i = 0; i < keyframes.size(); i++) {
+						Keyframe kf = keyframes.get(i);
+						for(Keyframe kfToCompare : parent.getModel().getAnimator().getCurrent().getKeyframes()) {
+							if(kfToCompare.getTick() == kf.getTick() + dif) {
+								kfsToDelete.add(kfToCompare);
+								LogUtils.log("KeyframeManagerWidget", "Adding kf " + kfToCompare.getTick());
+								break;
+							}
+						}
+					}*/
+					
+					Keyframe firstKf = first.getKf();
+					
+					if(dif < 0) {
+					
+						for(Keyframe kfToCompare : keyframes) {
+							// Finding the overlapped keyframe
+							if(kfToCompare.getTick() == tick) {
+								// Setting the old missing keyfames data to the new keyframe
+								for(Entry<JgModelPart, KeyframeTransformData> entry : kfToCompare
+										.getTraslations().entrySet()) {
+									if(!firstKf.getTraslations().containsKey(entry.getKey())) {
+										firstKf.getTraslations().put(entry.getKey(), entry.getValue());
+									}
+								}
+								for(Entry<JgModelPart, KeyframeTransformData> entry : kfToCompare
+										.getRotations().entrySet()) {
+									if(!firstKf.getRotations().containsKey(entry.getKey())) {
+										firstKf.getRotations().put(entry.getKey(), entry.getValue());
+									}
+								}
+								// We need to delete the replaced keyframe
+								kfsToDelete.add(kfToCompare);
+								break;
+							}
+						}
+					
+					}
+					
+					// Deleting keyframes
+					
+					for(Keyframe kf : kfsToDelete) {
+						LogUtils.log("KeyframeManagerWidget", "Kf Tick: " + kf.getTick());
+						parent.getModel().getAnimator().getCurrent().removeKeyframe(kf);
+					}
+					
+					firstKf.setTick(tick);
+					
+					LogUtils.log("KeyframeManagerWidget", "Anchor: " + anchor + " Keyframes: " + keyframes
+							.toString());
+					
+					updateStuff();
+				}
+			} else {
+				String data = box.getValue();
+				String[] spData = data.split(" ");
+				LogUtils.log("KfMW", "Data: " + Arrays.toString(spData));
+				if(spData.length == 2) {
+					if(spData[0].equals("/scale")) {
+						String val = spData[1].replaceAll(
+						          "[^0-9.]", "");
+						float scale = Float.valueOf(val);
+						if(scale != 0) {
+							for(Keyframe kf : parent.getModel().getAnimator().getCurrent().getKeyframes()) {
+								int kfTick = kf.getTick();
+								if(kfTick != 0) {
+									kf.setTick((int) (kfTick * scale));
+								}
+							}
+						}
+						
+						updateStuff();
 					}
 				}
 			}
-			updateStuff();
-			break;
+			
+			/*for(Keyframe kf : parent.getModel().getAnimator().getCurrent().getKeyframes()) {
+				LogUtils.log("KeyframeManagerWidget", "KfTick: " + kf.getTick());
+			}*/
 		}
 	}
 	
@@ -566,6 +867,7 @@ public class KeyframeManagerWidget extends JgAbstractWidget {
 		parent.getYEditBox().setValue("0.0");
 		parent.getZEditBox().setValue("0.0");
 		parent.getEasingEditBox().setValue("");
+		parent.getTransformTickEditBox().setValue("0");
 	}
 	
 	private void fillTextFieldsData(TransformData data) {
@@ -573,6 +875,7 @@ public class KeyframeManagerWidget extends JgAbstractWidget {
 		parent.getYEditBox().setValue(String.valueOf(data.getValue()[1]));
 		parent.getZEditBox().setValue(String.valueOf(data.getValue()[2]));
 		parent.getEasingEditBox().setValue(data.getEasing());
+		parent.getTransformTickEditBox().setValue(String.valueOf(data.getKf().getTick()));
 	}
 	
 	private void clearTransformsData() {
@@ -581,6 +884,15 @@ public class KeyframeManagerWidget extends JgAbstractWidget {
 		parent.getYEditBox().setValue("");
 		parent.getZEditBox().setValue("");
 		parent.getEasingEditBox().setValue("");
+		parent.getTransformTickEditBox().setValue("");
+	}
+	
+	public void setAdjustRemaining(boolean adjustRemaining) {
+		this.adjustRemaining = adjustRemaining;
+	}
+	
+	public boolean shouldAdjustRemaining() {
+		return adjustRemaining;
 	}
 	
 	public int getOffset() {
@@ -752,20 +1064,50 @@ public class KeyframeManagerWidget extends JgAbstractWidget {
 							TransformData posData = partData.getPosData();
 							if(!posData.isEmpty()) {
 								if (Utils.collides(kfx, y + tileSize, tileSize, tileSize, mx, my)) {
-									LogUtils.log("KfMW", "Clicking: " + posData.getParent().getPart().getName());
-									selected = posData;
-									
-									canOutRangeCounter = true;
-									outOfRangeCounterStart = System.currentTimeMillis();
+									if(!ClientEventHandler.keys[GLFW.GLFW_KEY_X]) {
+										LogUtils.log("KfMW", "Clicking: " + posData.getParent().getPart().getName());
+										selected = posData;
+										
+										canOutRangeCounter = true;
+										outOfRangeCounterStart = System.currentTimeMillis();
+									} else {
+										// This is important because without this it would be choosing and unchoosing
+										selected = null;
+										// End
+										selectedTransformDatas.clear();
+										addTransformData(posData);
+										for(KeyframePartData dta : data) {
+											if(dta.getKeyframe().getTick() == posData.getKf().getTick()
+													&& dta.getPosData() != posData) {
+												addTransformData(dta.getPosData());
+												addTransformData(dta.getRotData());
+											}
+										}
+									}
  								}
 							}
 							TransformData rotData = partData.getRotData();
 							if(!rotData.isEmpty()) {
 								if (Utils.collides(kfx, y + (tileSize * 2), tileSize, tileSize, mx, my)) {
-									selected = rotData;
-									
-									canOutRangeCounter = true;
-									outOfRangeCounterStart = System.currentTimeMillis();
+									if(!ClientEventHandler.keys[GLFW.GLFW_KEY_X]) {
+										selected = rotData;
+										
+										canOutRangeCounter = true;
+										outOfRangeCounterStart = System.currentTimeMillis();
+									} else {
+										// This is important because without this it would be choosing and unchoosing
+										selected = null;
+										// End
+										selectedTransformDatas.clear();
+										addTransformData(rotData);
+										for(KeyframePartData dta : data) {
+											if(dta.getKeyframe().getTick() == rotData.getKf().getTick()
+													&& dta.getPosData() != rotData) {
+												addTransformData(dta.getPosData());
+												addTransformData(dta.getRotData());
+											}
+										}
+									}
 								}
 							}
 						}

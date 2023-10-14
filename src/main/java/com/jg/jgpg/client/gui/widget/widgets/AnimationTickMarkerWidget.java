@@ -118,7 +118,7 @@ public class AnimationTickMarkerWidget extends JgAbstractWidget {
 				}
 			}
 			
-			setTx(getX() + (toWorkIndex * (width * 2)), "tick");
+			setTx((int) (getX() + (Math.floor(toWorkIndex) * (width * 2))), "tick");
 		}
 	}
 
@@ -162,7 +162,7 @@ public class AnimationTickMarkerWidget extends JgAbstractWidget {
 					this.visibleInBoundTick = rawToWorkIndex;
 					int toWorkIndex = rawToWorkIndex + parent.getKeyframeManager().getOffset();
 					
-					setTx(getX() + (toWorkIndex * (width * 2)), "mouse");
+					setTx((int) (getX() + (Math.floor(toWorkIndex) * (width * 2))), "mouse");
 					
 					if(visibleInBoundTick - prevVisibleInBoundTick != 0) {
 						parent.getKeyframeManager().getParent().getModel().getAnimator()
@@ -186,13 +186,13 @@ public class AnimationTickMarkerWidget extends JgAbstractWidget {
 			// Then adjust it
 			newOffset += Math.min(maxTicks, (animDur + 1) - (newOffset + maxTicks));
 			parent.getKeyframeManager().setOffset(newOffset);
-			setTx((int) (getX() + (tick * tileSize)), "udpate 1st");
+			setTx((int) (getX() + (Math.floor(tick) * tileSize)), "udpate 1st");
 			//LogUtils.log("ATMW", "1st update: tick: " + tick + " offset: " + offset + " tx: " + tx);
 		} else if (tick < offset) {
 			// Same that above
 			newOffset -= Math.min(maxTicks, offset);
 			parent.getKeyframeManager().setOffset(newOffset);
-			setTx((int) (getX() + (tick * tileSize)), "udpate 2nd");
+			setTx((int) (getX() + (Math.floor(tick) * tileSize)), "udpate 2nd");
 			//LogUtils.log("ATMW", "2nd update: tick: " + tick + " offset: " + offset + " tx: " + tx);
 		}
 	}

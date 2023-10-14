@@ -26,7 +26,7 @@ public class Trabuco extends JgGunItem {
 
 	@Override
 	public float getDamage() {
-		return Config.SERVER.prDamage.get().floatValue();
+		return Config.SERVER.tDamage.get().floatValue();
 	}
 	
 	@Override
@@ -41,9 +41,29 @@ public class Trabuco extends JgGunItem {
 
 	@Override
 	public int getBulletsPerShoot() {
-		return 1;
+		return 8;
 	}
 
+	@Override
+	public int getShootCooldown() {
+		return Config.SERVER.tCooldown.get();
+	}
+	
+	@Override
+	public float getRecoilWeight() {
+		return 4f;
+	}
+
+	@Override
+	public float getVerticalRecoilMultiplier() {
+		return 0.5f;
+	}
+
+	@Override
+	public float getHorizontalRecoilMultiplier() {
+		return 0.1f;
+	}
+	
 	@Override
 	public SoundEvent getSound() {
 		return SoundRegistries.FLINTLOCK_RIFLE_SHOOT.get();

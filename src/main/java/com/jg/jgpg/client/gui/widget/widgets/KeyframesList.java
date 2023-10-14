@@ -3,7 +3,6 @@ package com.jg.jgpg.client.gui.widget.widgets;
 import org.lwjgl.glfw.GLFW;
 
 import com.jg.jgpg.client.gui.AnimationGui;
-import com.jg.jgpg.utils.LogUtils;
 import com.jg.jgpg.utils.Utils;
 
 public class KeyframesList extends JgList {

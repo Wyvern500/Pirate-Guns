@@ -3,7 +3,7 @@ package com.jg.jgpg.client.events;
 import java.util.Map;
 
 import com.jg.jgpg.client.handlers.GunModelsHandler;
-import com.jg.jgpg.client.model.AbstractJgModel;
+import com.jg.jgpg.client.model.AbstractGunModel;
 
 import net.minecraft.world.item.Item;
 import net.minecraftforge.eventbus.api.Event;
@@ -15,7 +15,7 @@ public class RegisterGunModelsEvent extends Event {
 		
 	}
 	
-	public void register(Item item, AbstractJgModel model) {
+	public void register(Item item, AbstractGunModel model) {
 		GunModelsHandler.register(ForgeRegistries.ITEMS.getKey(item).toString(), model);
 	}
 	
@@ -23,7 +23,7 @@ public class RegisterGunModelsEvent extends Event {
 		GunModelsHandler.get(ForgeRegistries.ITEMS.getKey(item).toString());
 	}
 	
-	public Map<String, AbstractJgModel> getModels() {
+	public Map<String, AbstractGunModel> getModels() {
 		return GunModelsHandler.getModels();
 	}
 	

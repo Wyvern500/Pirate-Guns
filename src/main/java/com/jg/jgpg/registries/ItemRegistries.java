@@ -1,6 +1,7 @@
 package com.jg.jgpg.registries;
 
-import com.google.common.collect.Sets;
+import java.util.function.Supplier;
+
 import com.jg.jgpg.PirateGuns;
 import com.jg.jgpg.item.items.PiratePistol;
 import com.jg.jgpg.item.items.PirateRifle;
@@ -10,6 +11,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -20,16 +22,14 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegisterEvent;
 import net.minecraftforge.registries.RegistryObject;
 
-import java.util.LinkedHashSet;
-import java.util.function.Supplier;
-
 public class ItemRegistries {
+	
 	public static final DeferredRegister<Item> ITEMS = DeferredRegister
 			.create(ForgeRegistries.ITEMS, PirateGuns.MODID);
 
 	private static final ResourceKey<CreativeModeTab> MAIN =
 			ResourceKey.create(Registries.CREATIVE_MODE_TAB,
-					new ResourceLocation(PirateGuns.MODID, "pirateguns"));
+					new ResourceLocation(PirateGuns.MODID, "tabs.jgpg.pirateguns"));
 
 	public static final RegistryObject<Item> PIRATEPISTOL = regAdd("pirate_pistol",
 			PiratePistol::new);
@@ -45,6 +45,10 @@ public class ItemRegistries {
 	
 	public static final RegistryObject<Item> TRABUCO_BULLET = regAdd("trabuco_bullet", 
 			() -> new Item(new Item.Properties().stacksTo(64)));
+	
+	public static final RegistryObject<Item> GUN_AND_AMMO_CRAFTING_BLOCK = 
+			regAdd("gun_and_ammo_crafting_block", () -> new BlockItem(BlockRegistries
+					.GUN_AND_AMMO_CRAFTING_BLOCK.get(), new Item.Properties().stacksTo(64)));
 	
 	public static RegistryObject<Item> regAdd(String name, final Supplier<Item> sup) {
 		RegistryObject<Item> obj = ITEMS.register(name, sup);
@@ -72,6 +76,7 @@ public class ItemRegistries {
 			event.accept(TRABUCO);
 			event.accept(MUSKET_BULLET);
 			event.accept(TRABUCO_BULLET);
+			event.accept(GUN_AND_AMMO_CRAFTING_BLOCK);
 		}
 	}
 

@@ -12,16 +12,11 @@ import com.jg.jgpg.client.handler.ClientHandler;
 import com.jg.jgpg.client.model.AbstractJgModel;
 import com.jg.jgpg.client.render.RenderHelper;
 import com.jg.jgpg.utils.Color;
-import com.jg.jgpg.utils.LogUtils;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ComponentPath;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.CycleButton;
-import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.navigation.FocusNavigationEvent;
-import net.minecraft.client.gui.navigation.ScreenDirection;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
@@ -38,6 +33,8 @@ public class AnimationGui extends Screen {
 	JgEditBox transformTick;
 	
 	JgList animations;
+	
+	CycleButton<Boolean> adjustRemaining;
 	
 	public AnimationGui(ClientHandler client) {
 		super(Component.translatable(""));
@@ -77,8 +74,10 @@ public class AnimationGui extends Screen {
 			kfm.handleValueChange(3, easing, s);
 		});
 		addRenderableWidget(transformTick = new JgEditBox(font, 
-				120, 60, 100, 20, Component.translatable("")));
-		easing.setResponder((s) -> {
+				100, 120, 100, 20, (eb) -> {
+					kfm.onEditBoxEnter(eb);
+				}));
+		transformTick.setResponder((s) -> {
 			kfm.handleValueChange(4, transformTick, s);
 		});
 		addRenderableWidget(new SimpleButton(0, 82, 30, 20, Component.translatable("Stp"), 
@@ -136,6 +135,10 @@ public class AnimationGui extends Screen {
 		addRenderableWidget(CycleButton.onOffBuilder(true).create(0, 142, 80, 20, 
 				Component.translatable("Forward: "), (cycleBtn, val) -> {
 					model.getAnimator().setMovementType(val);
+				}));
+		addRenderableWidget(adjustRemaining = CycleButton.onOffBuilder(false).create(100, 140, 100, 20, 
+				Component.translatable("AdjustRem: "), (cycleBtn, val) -> {
+					kfm.setAdjustRemaining(val);
 				}));
 		
 		addRenderableWidget(kfm);
@@ -269,6 +272,10 @@ public class AnimationGui extends Screen {
 	
 	public JgEditBox getTransformTickEditBox() {
 		return transformTick;
+	}
+	
+	public CycleButton<Boolean> getAdjustRemaining() {
+		return adjustRemaining;
 	}
 	
 	public static class AnimationListItem extends AbstractJgListItem {

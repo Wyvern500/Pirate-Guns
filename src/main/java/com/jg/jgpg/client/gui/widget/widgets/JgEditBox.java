@@ -64,19 +64,25 @@ public class JgEditBox extends AbstractWidget implements Renderable {
 	};
 	@Nullable
 	private Component hint;
+	private OnEnter onEnter;
 
+	public JgEditBox(Font p_94114_, int p_94115_, int p_94116_, int p_94117_, int p_94118_, OnEnter onEnter) {
+		this(p_94114_, p_94115_, p_94116_, p_94117_, p_94118_, (JgEditBox) null, Component.translatable(""), 
+				onEnter);
+	}
+	
 	public JgEditBox(Font p_94114_, int p_94115_, int p_94116_, int p_94117_, int p_94118_, Component p_94119_) {
-		this(p_94114_, p_94115_, p_94116_, p_94117_, p_94118_, (JgEditBox) null, p_94119_);
+		this(p_94114_, p_94115_, p_94116_, p_94117_, p_94118_, (JgEditBox) null, p_94119_, null);
 	}
 
 	public JgEditBox(Font p_94106_, int p_94107_, int p_94108_, int p_94109_, int p_94110_,
-			@Nullable JgEditBox p_94111_, Component p_94112_) {
+			@Nullable JgEditBox p_94111_, Component p_94112_, OnEnter onEnter) {
 		super(p_94107_, p_94108_, p_94109_, p_94110_, p_94112_);
 		this.font = p_94106_;
 		if (p_94111_ != null) {
 			this.setValue(p_94111_.getValue());
 		}
-
+		this.onEnter = onEnter;
 	}
 
 	public void setResponder(Consumer<String> p_94152_) {
@@ -257,6 +263,7 @@ public class JgEditBox extends AbstractWidget implements Renderable {
 	}
 
 	public boolean keyPressed(int p_94132_, int p_94133_, int p_94134_) {
+		
 		if (!this.canConsumeInput()) {
 			return false;
 		} else {
@@ -283,6 +290,11 @@ public class JgEditBox extends AbstractWidget implements Renderable {
 				return true;
 			} else {
 				switch (p_94132_) {
+				case 257: // Enter
+					if(onEnter != null) {
+						onEnter.onEnter(this);
+					}
+					return true;
 				case 259:
 					if (this.isEditable) {
 						this.shiftPressed = false;
@@ -571,6 +583,12 @@ public class JgEditBox extends AbstractWidget implements Renderable {
 
 	public void setHint(Component p_259584_) {
 		this.hint = p_259584_;
+	}
+	
+	public interface OnEnter {
+		
+		public void onEnter(JgEditBox editBox);
+		
 	}
 
 }

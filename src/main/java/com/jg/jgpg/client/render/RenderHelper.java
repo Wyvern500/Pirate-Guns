@@ -1,31 +1,83 @@
 package com.jg.jgpg.client.render;
 
+import java.util.List;
+
+import org.joml.Matrix4f;
+
 import com.jg.jgpg.PirateGuns;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
-import com.mojang.logging.LogUtils;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Axis;
+
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.AbstractSelectionList;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.ItemInHandRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.HumanoidArm;
-import org.joml.Matrix4f;
-import org.joml.Vector3f;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class RenderHelper {
 
 	private static GuiGraphics guiRender;
+
+	public static void renderModelLists(BakedModel p_115190_, ItemStack p_115191_, int p_115192_, int p_115193_,
+			PoseStack p_115194_, VertexConsumer p_115195_) {
+		RandomSource randomsource = RandomSource.create();
+
+		for (Direction direction : Direction.values()) {
+			randomsource.setSeed(42L);
+			renderQuadList(p_115194_, p_115195_, p_115190_.getQuads((BlockState) null, direction, randomsource),
+					p_115191_, p_115192_, p_115193_);
+		}
+
+		randomsource.setSeed(42L);
+		renderQuadList(p_115194_, p_115195_, p_115190_.getQuads((BlockState) null, (Direction) null, randomsource),
+				p_115191_, p_115192_, p_115193_);
+	}
+	
+	public static void renderQuadList(PoseStack p_115163_, VertexConsumer p_115164_, List<BakedQuad> p_115165_,
+			ItemStack p_115166_, int p_115167_, int p_115168_) {
+		boolean flag = !p_115166_.isEmpty();
+		PoseStack.Pose posestack$pose = p_115163_.last();
+
+		for (BakedQuad bakedquad : p_115165_) {
+			// Create a new PoseStack for each quad's transformation.
+			PoseStack quadTransformStack = new PoseStack();
+			// Apply the current transformation to the new stack.
+	        quadTransformStack.last().pose().mul(p_115163_.last().pose());
+			
+			int i = -1;
+			if (flag && bakedquad.isTinted()) {
+				i = Minecraft.getInstance().getItemColors().getColor(p_115166_, bakedquad.getTintIndex());
+			}
+
+			float f = (float) (i >> 16 & 255) / 255.0F;
+			float f1 = (float) (i >> 8 & 255) / 255.0F;
+			float f2 = (float) (i & 255) / 255.0F;
+			
+			quadTransformStack.translate(0.1f, 0.1f, 0.1f);
+			p_115164_.putBulkData(quadTransformStack.last(), bakedquad, f, f1, f2, 1.0F, p_115167_, p_115168_, true);
+		}
+
+	}
 
 	public static GuiGraphics getGuiGraphics(){
 		if(guiRender == null){

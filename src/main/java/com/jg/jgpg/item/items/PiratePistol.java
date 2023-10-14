@@ -45,6 +45,26 @@ public class PiratePistol extends JgGunItem {
 	}
 
 	@Override
+	public int getShootCooldown() {
+		return Config.SERVER.ppCooldown.get();
+	}
+	
+	@Override
+	public float getRecoilWeight() {
+		return 4f;
+	}
+
+	@Override
+	public float getVerticalRecoilMultiplier() {
+		return 0.5f;
+	}
+
+	@Override
+	public float getHorizontalRecoilMultiplier() {
+		return 0.1f;
+	}
+	
+	@Override
 	public SoundEvent getSound() {
 		return SoundRegistries.FLINTLOCK_PISTOL_SHOOT.get();
 	}

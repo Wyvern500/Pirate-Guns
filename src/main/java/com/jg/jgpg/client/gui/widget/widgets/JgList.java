@@ -10,7 +10,6 @@ import com.jg.jgpg.client.gui.AnimationGui;
 import com.jg.jgpg.client.gui.widget.JgAbstractWidget;
 import com.jg.jgpg.client.render.RenderHelper;
 import com.jg.jgpg.utils.Color;
-import com.jg.jgpg.utils.LogUtils;
 import com.jg.jgpg.utils.MathUtils;
 import com.jg.jgpg.utils.Utils;
 

@@ -1,9 +1,11 @@
 package com.jg.jgpg.client.animations;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import com.jg.jgpg.client.gui.AnimationGui;
-import com.jg.jgpg.client.handler.ClientHandler;
 import com.jg.jgpg.client.handlers.EasingHandler;
 import com.jg.jgpg.client.model.AbstractJgModel;
 import com.jg.jgpg.client.model.JgModelPart;
@@ -12,13 +14,6 @@ import com.jg.jgpg.utils.MathUtils;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.ItemInHandRenderer;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class Animator {
 	
@@ -67,6 +62,7 @@ public class Animator {
 							
 							prevTick = tick;
 							tick += Minecraft.getInstance().getDeltaFrameTime() * 2f;
+							//tick += 1f;
 							
 							if(tick >= current.getDuration()) {
 								tick = current.getDuration();
@@ -100,8 +96,8 @@ public class Animator {
 								tick = 0;
 							}
 							
-							LogUtils.log("Animator", "CurrentKf: " + currentKf.getTick() + 
-									" lastKf: " + last.getTick() + " tick: " + tick);
+							/*LogUtils.log("Animator", "CurrentKf: " + currentKf.getTick() + 
+									" lastKf: " + last.getTick() + " tick: " + tick);*/
 							
 							updateAnimTickMarker();
 							
@@ -117,7 +113,7 @@ public class Animator {
 							tick = 0;
 							keyframeIndex = 0;
 							pickNewKeyframe();
-							LogUtils.log("Animator", "Reseting all");
+							//LogUtils.log("Animator", "Reseting all");
 						}
 					}
 				} else {
@@ -139,9 +135,9 @@ public class Animator {
 								}
 							}
 							
-							LogUtils.log("Animator", "currentTick: " + currentKf.getTick() + 
+							/*LogUtils.log("Animator", "currentTick: " + currentKf.getTick() + 
 									" prevTick: " + last.getTick() + " tick: " + tick + " kfIndex: " + 
-									keyframeIndex + " prevKfIndex: " + prevKeyframeIndex);
+									keyframeIndex + " prevKfIndex: " + prevKeyframeIndex);*/
 							
 							lerpValues();
 							
@@ -294,6 +290,11 @@ public class Animator {
 				gui.getKeyframeManager().getTickManager().update(tick, gui.getKeyframeManager()
 						.getOffset());
 				shouldUpdate = true;
+				LogUtils.log("Animator", "Tick: " + tick);
+			}
+			
+			for(Keyframe kf : current.getKeyframes()) {
+				LogUtils.log("KeyframeManagerWidget", "Kf: " + kf.toString());
 			}
 		}
 	}
@@ -308,14 +309,15 @@ public class Animator {
 				}
 				gui.getKeyframeManager().getTickManager().update(tick, gui.getKeyframeManager()
 						.getOffset());
-				LogUtils.log("Animator", "Tick: " + tick + " duration: " + current.getDuration());
+				//LogUtils.log("Animator", "Tick: " + tick + " duration: " + current.getDuration());
 				shouldUpdate = true;
+				LogUtils.log("Animator", "Tick: " + tick);
 			}
 		}
 	}
 	
 	public void save() {
-		String all = "= new Animation(\"" + current.getName() + "\")\n";
+		String all = " = new Animation(\"" + current.getName() + "\")\n";
 		for(Keyframe kf : current.getKeyframes()) {
 			all += ".addKeyframe(" + kf.getTick() + ")\n";
 			for(Entry<JgModelPart, KeyframeTransformData> entry : kf.getTraslations().entrySet()) {
@@ -332,7 +334,12 @@ public class Animator {
 			}
 		}
 		all += ".end();";
+		Minecraft.getInstance().keyboardHandler.setClipboard(all);
 		LogUtils.log("Animator", all);
+		
+		for(Keyframe kf : current.getKeyframes()) {
+			LogUtils.log("KeyframeManagerWidget", "KfTick: " + kf.getTick());
+		}
 	}
 	
 	public void setCurrent(AbstractJgModel model, Animation current) {
@@ -347,7 +354,7 @@ public class Animator {
 		this.prevTick = 0;
 		this.tick = 0;
 		if(model != null) {
-			model.getHandler().getAnimationDataHandler().setAnimation(current);
+			model.getClient().getAnimationDataHandler().setAnimation(current);
 			Screen screen = Minecraft.getInstance().screen;
 			if(screen instanceof AnimationGui) {
 				AnimationGui gui = (AnimationGui) screen;
@@ -506,6 +513,11 @@ public class Animator {
 				/*data.printCurrentTransforms();
 				data.printPrevTransforms();*/
 			}
+		} else if(keyframes.size() == 1) {
+			currentKf = keyframes.get(0);
+			Keyframe zero = new Keyframe(0).copyTransformsFrom(currentKf).toZero();
+			last = zero;
+			data.pick(last, currentKf);
 		}
 	}
 	

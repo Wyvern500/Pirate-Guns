@@ -21,6 +21,14 @@ public abstract class JgGunItem extends Item {
 	
 	public abstract int getBulletsPerShoot();
 	
+	public abstract int getShootCooldown();
+	
+	public abstract float getRecoilWeight();
+	
+	public abstract float getVerticalRecoilMultiplier();
+	
+	public abstract float getHorizontalRecoilMultiplier();
+	
 	public abstract SoundEvent getSound();
 
 }

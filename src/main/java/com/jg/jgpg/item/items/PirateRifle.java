@@ -43,6 +43,26 @@ public class PirateRifle extends JgGunItem {
 	public int getBulletsPerShoot() {
 		return 1;
 	}
+	
+	@Override
+	public int getShootCooldown() {
+		return Config.SERVER.prCooldown.get();
+	}
+	
+	@Override
+	public float getRecoilWeight() {
+		return 4f;
+	}
+
+	@Override
+	public float getVerticalRecoilMultiplier() {
+		return 0.5f;
+	}
+
+	@Override
+	public float getHorizontalRecoilMultiplier() {
+		return 0.1f;
+	}
 
 	@Override
 	public SoundEvent getSound() {

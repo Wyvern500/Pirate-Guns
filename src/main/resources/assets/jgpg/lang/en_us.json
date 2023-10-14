@@ -1,0 +1,12 @@
+{
+    "item.jgpg.pirate_pistol": "Pirate Pistol", 
+    "item.jgpg.pirate_rifle": "Pirate Rifle", 
+    "item.jgpg.trabuco": "Trabuco", 
+    "item.jgpg.musket_bullet": "Musket Bullet", 
+    "item.jgpg.trabuco_bullet": "Trabuco Bullet", 
+    "block.jgpg.gun_and_ammo_crafting_block": "Gun And Ammo Crafting Block",
+    "key.jgpg.reload": "Reload", 
+    "key.jgpg.look": "Look",
+    "tabs.jgpg.pirateguns": "Pirate Guns",
+    "com.jgpg.container.gun_and_ammo_crafting_menu": "Gun And Ammo Table"
+}

@@ -108,5 +108,35 @@
             "stream": false
           }
         ]
+    },
+    "gun_swing": {
+      "category": "neutral",
+      "subtitle": "gun_swing",
+      "sounds": [
+        {
+          "name": "jgpg:neutral/guns/swing2",
+          "stream": false
+        }
+      ]
+    },
+    "meleehit": {
+      "category": "neutral",
+      "subtitle": "meleehit",
+      "sounds": [
+        {
+          "name": "jgpg:neutral/guns/meleehit1",
+          "stream": false
+        }
+      ]
+    },
+    "metal_sliding": {
+      "category": "neutral",
+      "subtitle": "metal_sliding",
+      "sounds": [
+        {
+          "name": "jgpg:neutral/guns/metal_sliding",
+          "stream": false
+        }
+      ]
     }
 }

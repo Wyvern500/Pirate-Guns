@@ -34,6 +34,12 @@ public class SoundRegistries {
 	
 	public static final RegistryObject<SoundEvent> GUN_MOVING = register("gun_moving_sound");
 	
+	public static final RegistryObject<SoundEvent> GUN_SWING = register("gun_swing");
+	
+	public static final RegistryObject<SoundEvent> GUN_MELEE_HIT = register("meleehit");
+	
+	public static final RegistryObject<SoundEvent> METAL_SLIDING = register("metal_sliding");
+	
 	public static RegistryObject<SoundEvent> register(String key) {
 		return SOUNDS.register(key, () -> SoundEvent.createVariableRangeEvent(
 				new ResourceLocation(PirateGuns.MODID, key)));

@@ -22,6 +22,16 @@ public class Animation {
 	
 	public Animation addKeyframe(int tick) {
 		keyframeIndex++;
+		Keyframe kfToDelete = null;
+		for(Keyframe kf : keyframes) {
+			if(kf.getTick() == tick) {
+				kfToDelete = kf;
+				break;
+			}
+		}
+		if(kfToDelete != null ) {
+			keyframes.remove(kfToDelete);
+		}
 		Keyframe kf = new Keyframe(tick);
 		keyframes.add(kf);
 		sort();
@@ -52,6 +62,9 @@ public class Animation {
 	}
 	
 	public Animation addKeyframe(Keyframe kf) {
+		if(keyframes.contains(kf)) {
+			keyframes.remove(kf);
+		}
 		keyframes.add(kf);
 		sort();
 		return this;

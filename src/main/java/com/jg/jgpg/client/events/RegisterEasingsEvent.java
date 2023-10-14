@@ -1,6 +1,5 @@
 package com.jg.jgpg.client.events;
 
-import com.jg.jgpg.client.animations.Animator;
 import com.jg.jgpg.client.animations.Easing;
 import com.jg.jgpg.client.handlers.EasingHandler;
 

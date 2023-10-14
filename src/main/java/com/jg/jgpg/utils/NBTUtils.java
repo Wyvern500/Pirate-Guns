@@ -12,4 +12,12 @@ public class NBTUtils {
 		stack.getOrCreateTag().putString(Constants.ID, id);
 	}
 	
+	public static boolean isLoaded(ItemStack stack) {
+		return stack.getOrCreateTag().getBoolean(Constants.BULLET_LOADED);
+	}
+	
+	public static void setLoaded(ItemStack stack, boolean loaded) {
+		stack.getOrCreateTag().putBoolean(Constants.BULLET_LOADED, loaded);
+	}
+	
 }

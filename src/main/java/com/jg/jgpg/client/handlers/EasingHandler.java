@@ -22,7 +22,7 @@ public class EasingHandler {
 	}
 	
 	public Easing getEasing(String easing) {
-		return easings.get(easing);
+		return easings.getOrDefault(easing, easings.get("empty"));
 	}
 	
 	public boolean has(String easing) {
