@@ -237,6 +237,11 @@ public class ClientEventHandler {
 					e.setFOV((float) Mth.lerp((client.getAimHandler().getProgress(item) - 0.5f) / 0.5f, 
 							Minecraft.getInstance().options.fov().get(), 20));
 				}
+			} else {
+				if(client.getAimHandler().getProgress(item) > 0.5f) {
+					e.setFOV((float) Mth.lerp((client.getAimHandler().getProgress(item) - 0.5f) / 0.5f, 
+							Minecraft.getInstance().options.fov().get(), 65));
+				}
 			}
 		}
 	}
@@ -248,28 +253,6 @@ public class ClientEventHandler {
 
 		if (player == null)
 			return;
-
-		boolean ifi = false;
-		if(ifi){
-			int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
-			int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
-
-			float f = (float) Math.min(screenWidth, screenHeight);
-			float f1 = Math.min((float) screenWidth / f, (float) screenHeight / f) *
-					Mth.lerp((0 - 0.5f) / 0.5f, 0.01f, 1.125f);
-			int i = Mth.floor(f * f1);
-			int j = Mth.floor(f * f1);
-			int k = (screenWidth - i) / 2;
-			int l = (screenHeight - j) / 2;
-			int i1 = k + i;
-			int j1 = l + j;
-
-			RenderSystem.enableDepthTest();
-			GL11.glEnable(GL11.GL_BLEND);
-			RenderHelper.blit(SCOPE, e.getGuiGraphics().pose(), k, l, -90, 0.0F, 0.0F, i, j, i, j);
-			GL11.glDisable(GL11.GL_BLEND);
-			RenderSystem.disableDepthTest();
-		}
 
 		if (player.getMainHandItem().getItem() instanceof JgGunItem) {
 			if (e.getOverlay().overlay() == VanillaGuiOverlay.CROSSHAIR.type()
@@ -377,9 +360,9 @@ public class ClientEventHandler {
 			// LogUtils.log("ClientEventHandler:handleKeyboard", "Key: " + e.getKey());
 			
 			AbstractGunModel model = client.getModel();
-			Animation currentAnimation = model.getAnimator().getCurrent();
 			
 			if(model != null) {
+				Animation currentAnimation = model.getAnimator().getCurrent();
 				// Gun related stuff
 				if(e.getKey() == RELOAD.getKey().getValue()) {
 					model.tryToReload(player);

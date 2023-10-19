@@ -59,7 +59,7 @@ public class ItemRegistries {
 		event.register(Registries.CREATIVE_MODE_TAB, helper -> {
 			helper.register(MAIN, CreativeModeTab.builder().icon(() ->
 							new ItemStack(Items.GUNPOWDER))//new ItemStack(ItemRegistries.PIRATERIFLE.get()))
-					.title(Component.translatable("pirateguns"))
+					.title(Component.translatable("tabs.jgpg.pirateguns"))
 					.displayItems((params, output) -> {
 						ITEMS.getEntries().forEach((reg) -> {
 							output.accept(new ItemStack(reg.get()));
