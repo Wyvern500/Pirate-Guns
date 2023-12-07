@@ -17,6 +17,7 @@ import com.jg.jgpg.client.animations.KeyframePartData;
 import com.jg.jgpg.client.animations.KeyframePartData.TransformData;
 import com.jg.jgpg.client.animations.KeyframeTransformData;
 import com.jg.jgpg.client.animations.PreviewTransformData;
+import com.jg.jgpg.client.animations.Transform;
 import com.jg.jgpg.client.gui.AnimationGui;
 import com.jg.jgpg.client.gui.widget.JgAbstractWidget;
 import com.jg.jgpg.client.gui.widget.widgets.JgList.AbstractJgListItem;
@@ -38,6 +39,7 @@ public class KeyframeManagerWidget extends JgAbstractWidget {
 	
 	List<JgAbstractWidget> widgets;
 	List<PreviewTransformData> previewTransforms;
+	List<TransformData> copiedTransformDatas;
 	List<TransformData> selectedTransformDatas;
 	
 	ScrollbarWidget verticalScrollbar;
@@ -94,6 +96,7 @@ public class KeyframeManagerWidget extends JgAbstractWidget {
 		widgets.add(items);
 		widgets.add(tickManager);
 		selectedTransformDatas = new ArrayList<>();
+		copiedTransformDatas = new ArrayList<>();
 		
 		keys = new boolean[400];
 		
@@ -257,13 +260,17 @@ public class KeyframeManagerWidget extends JgAbstractWidget {
 		}
 		keyPressed = true;
 		keys[keyCode] = true;
-		//LogUtils.log("KfMW", "f1: " + keyCode + " f2: " + f2 + " f3: " + f3);
+		// LogUtils.log("KfMW", "f1: " + keyCode + " f2: " + f2 + " f3: " + f3);
 		
 		// Hotkeys
 		
+		LogUtils.log("KeyframeManagerWidget", "Tick: " + tickManager.getTick());
+		
 		// 17 Ctrl | 68 d | 259 Del
 		if (keys[GLFW.GLFW_KEY_LEFT_CONTROL] && keys[GLFW.GLFW_KEY_D]) { // Ctrl + d
+			LogUtils.log("KeyframeManagerWidget", "Ctrl + d: Tick: " + tickManager.getTick());
 			if (!selectedTransformDatas.isEmpty()) {
+				LogUtils.log("KeyframeManagerWidget", "Ctrl + d: Tick: " + tickManager.getTick());
 				if(parent.getModel().getAnimator().getCurrent() == null) return super.keyPressed(keyCode, f2, f3);
 				for (TransformData data : selectedTransformDatas) {
 					Keyframe selected = data.getKf();
@@ -286,6 +293,43 @@ public class KeyframeManagerWidget extends JgAbstractWidget {
 									new KeyframeTransformData(data.getValue(), data.getEasing()));
 						}
 						data.getAnimation().addKeyframe(newKf);
+					}
+					updateStuff();
+				}
+			}
+		} else if(keys[GLFW.GLFW_KEY_LEFT_CONTROL] && keys[GLFW.GLFW_KEY_C]) {
+			// Te quedaste haciendo que un copy paste funcionara
+			copiedTransformDatas.clear();
+			copiedTransformDatas.addAll(selectedTransformDatas);
+			LogUtils.log("KeyframeManagerWidget", "Ctrl + c: Tick: " + tickManager.getTick());
+		} else if(keys[GLFW.GLFW_KEY_LEFT_CONTROL] && keys[GLFW.GLFW_KEY_V]) {
+			if(!copiedTransformDatas.isEmpty()) {
+				// Check if it is empty
+				int targetTick = tickManager.getTick();
+				int anchorTick = copiedTransformDatas.get(0).getKf().getTick();
+				for (TransformData data : copiedTransformDatas) {
+					int offset = data.getKf().getTick() - anchorTick;
+					Keyframe kf = getKeyframeOnTick(targetTick + offset);
+					LogUtils.log("KeyframeManagerWidget", "TargetTick: " + targetTick + " anchorTick: " + 
+							anchorTick + " offset: " + offset + " targetTick + offset: " + (targetTick + offset));
+					if (kf != null) {
+						if (data.isRot()) {
+							kf.getRotations().put(data.getParent().getPart(),
+									new KeyframeTransformData(data.getValue(), data.getEasing()));
+						} else {
+							kf.getTraslations().put(data.getParent().getPart(),
+									new KeyframeTransformData(data.getValue(), data.getEasing()));
+						}
+					} else {
+						kf = new Keyframe(targetTick + offset);
+						if (data.isRot()) {
+							kf.getRotations().put(data.getParent().getPart(),
+									new KeyframeTransformData(data.getValue(), data.getEasing()));
+						} else {
+							kf.getTraslations().put(data.getParent().getPart(),
+									new KeyframeTransformData(data.getValue(), data.getEasing()));
+						}
+						data.getAnimation().addKeyframe(kf);
 					}
 					updateStuff();
 				}

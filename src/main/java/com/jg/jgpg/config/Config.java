@@ -41,6 +41,17 @@ public class Config {
 		
 		public final ForgeConfigSpec.IntValue ppGunpowderToReload;
 		
+		// Pirate Pistol
+		public final ForgeConfigSpec.DoubleValue prvDamage;
+		public final ForgeConfigSpec.IntValue prvPower;
+		public final ForgeConfigSpec.DoubleValue prvInaccuracy;
+		public final ForgeConfigSpec.IntValue prvRange;
+		public final ForgeConfigSpec.DoubleValue prvRangeDamageReduction;
+		public final ForgeConfigSpec.DoubleValue prvMeleeHitDamage;
+		public final ForgeConfigSpec.IntValue prvCooldown;
+		
+		public final ForgeConfigSpec.IntValue prvGunpowderToReload;
+		
 		// Trabuco
 		public final ForgeConfigSpec.DoubleValue tDamage;
 		public final ForgeConfigSpec.IntValue tPower;
@@ -118,6 +129,28 @@ public class Config {
 					1000);
 			ppGunpowderToReload = builder.comment("Gunpowder to reload")
 					.defineInRange("Pirate Pistol Gunpowder needed for reload", 1, 0, 100);
+			builder.pop();
+			// Primitive Revolver
+			builder.push("Primitive Revolver");
+			prvDamage = builder.comment("Damage").defineInRange("Primitive Revolver Damage", 12f, 0f, 1000f);
+			prvPower = builder.comment("Shoot Power").defineInRange("Primitive Revolver Power", 14, 0, 1000);
+			prvInaccuracy = builder.comment("Inaccuracy").defineInRange("Primitive Revolver Inaccuracy", 0.3f, 0f, 
+					1000f);
+			prvRange = builder.comment("Range - If this value is reached, bullet will be gradually losing "
+					+ "damage")
+					.defineInRange("Primitive Revolver Range", 4, 0, 1000);
+			prvRangeDamageReduction = builder
+					.comment("Range Damage Reduction - The closer to 1, the less "
+					+ "damage you will lose - This value will multiply "
+					+ "gunDmg when bullet range is rechead - for example: dmgRed: 0.9 dmg: 4 -> 4 * "
+					+ "0.9 = 3.6 <- this will happen every time the range is reached")
+					.defineInRange("Primitive Revolver Range DamageReduction", 0.7f, 0f, 1000f);
+			prvMeleeHitDamage = builder.comment("Melee Damage").defineInRange("Primitive Revolver Melee Damage", 3f, 0f, 
+					1000f);
+			prvCooldown = builder.comment("Shoot Cooldown").defineInRange("Primitive Revolver Shoot Cooldown", 8, 0, 
+					1000);
+			prvGunpowderToReload = builder.comment("Gunpowder to reload")
+					.defineInRange("Primitive Revolver Gunpowder needed for reload", 1, 0, 100);
 			builder.pop();
 			// Trabuco
 			builder.push("Trabuco");

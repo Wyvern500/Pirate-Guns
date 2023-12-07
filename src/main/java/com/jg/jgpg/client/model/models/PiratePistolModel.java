@@ -49,20 +49,16 @@ public class PiratePistolModel extends AbstractGunModel {
 	
 	@Override
 	public void initParts() {
-		
-		addPart(new JgModelPart("gun", 0.776f, -0.7079999f, -1.4219983f, 0.17004529f, 0.14f, 0));
-		addPart(new JgModelPart("hammer", 0.83599997f, -0.84799975f, -0.82199883f, 
-				-1.3658453f, 0.035280257f, 0.06981317f));
-		addPart(new JgModelPart("leftarm", 0, -0.56f, 0, 0, 0, 0));
-		addPart(new JgModelPart("rightarm", 0.3f, 0.24000005f, 1.7799987f, -0.25830868f, 0.20594876f, 0.5096381f));
-		addPart(new JgModelPart("rightarmgun", 0, 0, 0, 0, 0, 0));
-		addPart(new JgModelPart("all", 0, 0, 0, 0, 0, 0));
-		addPart(new JgModelPart("gunwithhammer", 0, 0, 0, 0, 0, 0));
-		addPart(new JgModelPart("aim", -0.68599474f, 0.55199647f, 0.0f, -0.15707956f, -0.13264497f, 0f));
-		addPart(new JgModelPart("sprint", 0.16f, -0.85999954f, 1.4901161E-8f, 0.9424782f, 
-				-0.20943952f, 0.0f));
+		addPart(new JgModelPart("aim", -1.1059934f, 0.75199604f, 0.32799998f, -0.08726639f, -0.13264497f, 0.0f));
+		addPart(new JgModelPart("all", 0.41999987f, -0.28f, -0.7119996f, 0.0f, 0.0f, 0.0f));
+		addPart(new JgModelPart("gun", 0.776f, -0.7079999f, -1.4219983f, 0.17004529f, 0.14f, 0.0f));
+		addPart(new JgModelPart("gunwithhammer", 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f));
+		addPart(new JgModelPart("hammer", 0.83599997f, -0.84799975f, -0.82199883f, -1.3658453f, 0.035280257f, 0.06981317f));
+		addPart(new JgModelPart("leftarm", 0.0f, -0.56f, 0.0f, 0.0f, 0.0f, 0.0f));
 		addPart(new JgModelPart("recoil", -0.09999999f, -0.97999936f, 0.039999984f, 0.6283214f, 0.0f, 0.15707956f));
-		
+		addPart(new JgModelPart("rightarm", 0.3f, 0.24000005f, 1.8199986f, -0.25830868f, 0.20594876f, 0.5096381f));
+		addPart(new JgModelPart("rightarmgun", 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f));
+		addPart(new JgModelPart("sprint", 0.16f, -0.85999954f, 1.4901161E-8f, 0.9424782f, -0.20943952f, 0.0f));
 	}
 	
 	@Override

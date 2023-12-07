@@ -22,15 +22,19 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -38,6 +42,26 @@ public class RenderHelper {
 
 	private static GuiGraphics guiRender;
 
+	public static void renderItem(PoseStack matrix, ItemStack stack, MultiBufferSource buffer, int light) {
+		ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
+		BakedModel model = itemRenderer.getItemModelShaper().getItemModel(stack);
+		model = net.minecraftforge.client.ForgeHooksClient.handleCameraTransforms(matrix, model, 
+				ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, false);
+		
+		itemRenderer.render(stack, ItemDisplayContext
+				.NONE, false, matrix, buffer, light, OverlayTexture.NO_OVERLAY, model);
+	}
+	
+	public static void renderSpecial(PoseStack matrix, ItemStack stack, MultiBufferSource buffer, int light, 
+			String path) {
+		BakedModel hammer = Minecraft.getInstance().getModelManager().getModel(new ModelResourceLocation(
+				new ResourceLocation(path), "inventory"));
+		hammer = net.minecraftforge.client.ForgeHooksClient.handleCameraTransforms(matrix, hammer, 
+				ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, false);
+		Minecraft.getInstance().getItemRenderer().render(stack, ItemDisplayContext
+				.NONE, false, matrix, buffer, light, OverlayTexture.NO_OVERLAY, hammer);
+	}
+	
 	public static void renderModelLists(BakedModel p_115190_, ItemStack p_115191_, int p_115192_, int p_115193_,
 			PoseStack p_115194_, VertexConsumer p_115195_) {
 		RandomSource randomsource = RandomSource.create();
