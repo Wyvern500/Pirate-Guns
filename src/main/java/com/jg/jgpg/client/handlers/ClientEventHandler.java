@@ -1,6 +1,7 @@
 package com.jg.jgpg.client.handlers;
 
 import java.util.UUID;
+import java.util.Map.Entry;
 
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
@@ -10,6 +11,7 @@ import com.jg.jgpg.capabilities.IPlayerCapability;
 import com.jg.jgpg.capabilities.PlayerCapability;
 import com.jg.jgpg.capabilities.PlayerCapabilityImplementation;
 import com.jg.jgpg.client.animations.Animation;
+import com.jg.jgpg.client.animations.Transform;
 import com.jg.jgpg.client.events.RegisterEasingsEvent;
 import com.jg.jgpg.client.events.RegisterGunModelsEvent;
 import com.jg.jgpg.client.gui.AnimationGui;
@@ -17,14 +19,18 @@ import com.jg.jgpg.client.gui.GunAndAmmoCraftingGui;
 import com.jg.jgpg.client.gui.widget.widgets.JgEditBox;
 import com.jg.jgpg.client.handler.ClientHandler;
 import com.jg.jgpg.client.model.AbstractGunModel;
+import com.jg.jgpg.client.model.JgModelPart;
 import com.jg.jgpg.client.model.loader.JgModelLoader;
 import com.jg.jgpg.client.model.models.PiratePistolModel;
 import com.jg.jgpg.client.model.models.PirateRifleModel;
+import com.jg.jgpg.client.model.models.PrimitiveRevolverModel;
 import com.jg.jgpg.client.model.models.TrabucoModel;
 import com.jg.jgpg.client.render.RenderHelper;
 import com.jg.jgpg.config.Config;
 import com.jg.jgpg.item.JgGunItem;
 import com.jg.jgpg.item.items.PirateRifle;
+import com.jg.jgpg.item.items.PrimitiveRevolver;
+import com.jg.jgpg.network.SetScopeMessage;
 import com.jg.jgpg.registries.ContainerRegistries;
 import com.jg.jgpg.registries.EntityRegistries;
 import com.jg.jgpg.registries.ItemRegistries;
@@ -42,6 +48,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -76,6 +83,8 @@ public class ClientEventHandler {
 			PirateGuns.MODID);
 	public static KeyMapping KICKBACK = new KeyMapping("key.jgpg.kickback", GLFW.GLFW_KEY_V, 
 			PirateGuns.MODID);
+	public static KeyMapping REMOVESCOPE = new KeyMapping("key.jgpg.remove_scope", GLFW.GLFW_KEY_B, 
+			PirateGuns.MODID);
 	
 	private static float trStep = 0.01f;
 	private static float rtStep = (float) Math.toRadians(0.01D);
@@ -90,7 +99,7 @@ public class ClientEventHandler {
 		bus.addListener(ClientEventHandler::registerShaders);
 		bus.addListener(ClientEventHandler::registerSpecialModels);
 		bus.addListener(ClientEventHandler::registerKeyBindings);
-		bus.addListener(ClientEventHandler::registerModelLoaders);
+		//bus.addListener(ClientEventHandler::registerModelLoaders);
 	}
 
 	public static void registerForgeEventListeners(IEventBus bus) {
@@ -105,7 +114,7 @@ public class ClientEventHandler {
 		bus.addListener(ClientEventHandler::scopeModifier);
 		bus.addListener(ClientEventHandler::renderPlayer);
 		//bus.addGenericListener(Entity.class, ClientEventHandler::attachCapabilities);
-		bus.addListener(ClientEventHandler::onPlayerClone);
+		//bus.addListener(ClientEventHandler::onPlayerClone);
 	}
 	
 	public static void setup() {
@@ -122,7 +131,7 @@ public class ClientEventHandler {
 			
 			e.addCapability(PlayerCapabilityProvider.ID, provider);
 		}
-	}*/
+	}
 	
 	private static void onPlayerClone(PlayerEvent.Clone e) {
 		if(e.isWasDeath()) {
@@ -136,7 +145,7 @@ public class ClientEventHandler {
 			
 			old.invalidateCaps();
 		}
-	}
+	}*/
 	
 	// Registering
 	
@@ -169,6 +178,10 @@ public class ClientEventHandler {
 	private static void registerSpecialModels(ModelEvent.RegisterAdditional e) {
 		e.register(new ModelResourceLocation(new ResourceLocation(Constants.PPHAMMER),
 				"inventory"));
+		e.register(new ModelResourceLocation(new ResourceLocation(Constants.PRVHAMMER),
+				"inventory"));
+		e.register(new ModelResourceLocation(new ResourceLocation(Constants.PRVCHAMBER),
+				"inventory"));
 		e.register(new ModelResourceLocation(new ResourceLocation(Constants.PRHAMMER),
 				"inventory"));
 		e.register(new ModelResourceLocation(new ResourceLocation(Constants.THAMMER),
@@ -189,6 +202,7 @@ public class ClientEventHandler {
 	private static void registerGunModels(RegisterGunModelsEvent e) {
 		e.register(ItemRegistries.PIRATEPISTOL.get(), new PiratePistolModel(client));
 		e.register(ItemRegistries.PIRATERIFLE.get(), new PirateRifleModel(client));
+		e.register(ItemRegistries.PRIMITIVEREVOLVER.get(), new PrimitiveRevolverModel(client));
 		e.register(ItemRegistries.TRABUCO.get(), new TrabucoModel(client));
 		LogUtils.log("ClientEventHandler", "Registering Gun Models :)");
 	}
@@ -233,9 +247,15 @@ public class ClientEventHandler {
 		Item item = player.getMainHandItem().getItem();
 		if (item instanceof JgGunItem) {
 			if(item instanceof PirateRifle) {
-				if(client.getAimHandler().getProgress(item) > 0.5f) {
-					e.setFOV((float) Mth.lerp((client.getAimHandler().getProgress(item) - 0.5f) / 0.5f, 
-							Minecraft.getInstance().options.fov().get(), 20));
+				if(NBTUtils.hasScope(player.getMainHandItem())) {
+					if(client.getAimHandler().getProgress(item) > 0.5f) {
+						e.setFOV((float) Mth.lerp((client.getAimHandler().getProgress(item) - 0.5f) / 0.5f, 
+								Minecraft.getInstance().options.fov().get(), 20));
+					}
+				} else {
+					// Pirate rifle has no scope
+					e.setFOV((float) Mth.lerp((client.getAimHandler().getProgress(item)) / 0.5f, 
+							Minecraft.getInstance().options.fov().get(), 65));
 				}
 			} else {
 				if(client.getAimHandler().getProgress(item) > 0.5f) {
@@ -273,10 +293,18 @@ public class ClientEventHandler {
 		Item item = player.getMainHandItem().getItem();
 		if (item instanceof JgGunItem) {
 			if(item instanceof PirateRifle) {
-				if (e.getOverlay() == VanillaGuiOverlay.HOTBAR.type()) {
-					if(client.getAimHandler().getProgress(item) > 0.5f) {
-						RenderHelper.renderScopeOverlay(client.getAimHandler().getProgress(item));
+				if(NBTUtils.hasScope(player.getMainHandItem())) {
+					if (e.getOverlay() == VanillaGuiOverlay.HOTBAR.type()) {
+						if(client.getAimHandler().getProgress(item) > 0.5f) {
+							RenderHelper.renderScopeOverlay(client.getAimHandler().getProgress(item));
+						}
 					}
+				}
+			}
+			if(e.getOverlay() == VanillaGuiOverlay.PLAYER_HEALTH.type()) {
+				if(item instanceof PrimitiveRevolver) {
+					e.getGuiGraphics().drawString(Minecraft.getInstance().font, 
+							Component.translatable("Hello, this gun is in work progress, so it wont shoot or reload :)"), 100, 100, 0xFFFFFF);
 				}
 			}
 		}
@@ -289,6 +317,8 @@ public class ClientEventHandler {
 		if(player != null) {
 			ItemStack stack = player.getMainHandItem();
 			
+			boolean isGun = false;
+			
 			// When initializing the stack id, I use it to differentiate each stack and for other purposes
 			String id = NBTUtils.getId(stack);
 			if(id.equals("") || id.isEmpty()) {
@@ -300,6 +330,7 @@ public class ClientEventHandler {
 			
 			if(stack.getItem() instanceof JgGunItem) {
 				client.tick(player, stack, id);
+				isGun = true;
 			}
 			
 			// Handle keys
@@ -329,6 +360,11 @@ public class ClientEventHandler {
 					client.addToModel(0, 0, -toUse, isRotationMode, isDisplayMode);
 				} else if(keys[77]) { // M arrow
 					client.addToModel(0, 0, toUse, isRotationMode, isDisplayMode);
+				} else if(keys[GLFW.GLFW_KEY_LEFT_SHIFT] && keys[REMOVESCOPE.getKey().getValue()]) {
+					if(stack.getItem() instanceof PirateRifle) {
+						LogUtils.log("ClientEventHandler:tickClient", "Removing scope");
+						((PirateRifleModel) client.getModel()).removeScope();
+					}
 				}
 			}
 		}
@@ -380,6 +416,12 @@ public class ClientEventHandler {
 			// Debug Stuff
 			if(debugMode) {
 				// Model Manipulation
+				if(!keys[GLFW.GLFW_KEY_LEFT_CONTROL]) {
+					if(keys[GLFW.GLFW_KEY_C]) {
+						isRotationMode = !isRotationMode;
+						LogUtils.log("handleKeyboard", "isRotationMode: " + isRotationMode);
+					}
+				}
 				// Left 263 Up 265 Down 264 Right 262 N 78 M 77 C 67 Intro (numpad) 335 J 74 K 75
 				switch(e.getKey()) {
 				case 261: // Supr
@@ -397,10 +439,6 @@ public class ClientEventHandler {
 							}
 						}
 					}
-					break;
-				case 67: // C
-					isRotationMode = !isRotationMode;
-					LogUtils.log("handleKeyboard", "isRotationMode: " + isRotationMode);
 					break;
 				case 92: // }
 					isDisplayMode = !isDisplayMode;
@@ -423,6 +461,16 @@ public class ClientEventHandler {
 					break;
 				case 39: // {
 					client.switchRenderDefault();
+					break;
+				case 88: // X
+					String res = "\n";
+					for(Entry<String, JgModelPart> entry : client.getModel().getParts().entrySet()) {
+						Transform t = entry.getValue().getDtransform();
+						res += "addPart(new JgModelPart(\"" + entry.getKey() + "\", " + t.pos[0] + "f, " + 
+								t.pos[1] + "f, " + t.pos[2] + "f, " + t.rot[0] + "f, " + t.rot[1] + "f, " + 
+								t.rot[2] + "f));\n";
+					}
+					LogUtils.log("ClientEventHandler", "ModelData: " + res);
 					break;
 				}
 			}

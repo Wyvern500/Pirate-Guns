@@ -3,6 +3,7 @@ package com.jg.jgpg.client.handler;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.jg.jgpg.PirateGuns;
 import com.jg.jgpg.client.handlers.AimHandler;
 import com.jg.jgpg.client.handlers.AnimationDataHandler;
 import com.jg.jgpg.client.handlers.GunModelsHandler;
@@ -12,12 +13,17 @@ import com.jg.jgpg.client.handlers.SprintHandler;
 import com.jg.jgpg.client.model.AbstractGunModel;
 import com.jg.jgpg.client.model.JgModelPart;
 import com.jg.jgpg.client.render.renderers.JgPlayerRenderer;
+import com.jg.jgpg.registries.ItemRegistries;
 import com.jg.jgpg.utils.LogUtils;
+import com.jg.jgpg.utils.MathUtils;
+import com.jg.jgpg.utils.NBTUtils;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.item.ItemProperties;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -99,6 +105,13 @@ public class ClientHandler {
 		shoot.handleMouse(e);
 	}
 	
+	public static void registerItemProperties() {
+		ItemProperties.register(ItemRegistries.PIRATERIFLE.get(), 
+			      new ResourceLocation(PirateGuns.MODID, "has_scope"), (stack, level, living, id) -> {
+			    	  return NBTUtils.hasScope(stack) ? 0.0f : 1.0f;
+		});
+	}
+	
 	// Model Manipulation
 	
 	public void nextPartIndex() {
@@ -166,6 +179,7 @@ public class ClientHandler {
 	
 	public void setModel(AbstractGunModel model) {
 		this.model = model;
+		index = MathUtils.clamp(index, 0, model.getParts().values().size() - 1);
 		parts = new ArrayList<>(model.getParts().values());
 	}
 	

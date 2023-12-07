@@ -5,6 +5,7 @@ import java.util.function.Supplier;
 import com.jg.jgpg.PirateGuns;
 import com.jg.jgpg.item.items.PiratePistol;
 import com.jg.jgpg.item.items.PirateRifle;
+import com.jg.jgpg.item.items.PrimitiveRevolver;
 import com.jg.jgpg.item.items.Trabuco;
 
 import net.minecraft.core.registries.Registries;
@@ -33,6 +34,9 @@ public class ItemRegistries {
 
 	public static final RegistryObject<Item> PIRATEPISTOL = regAdd("pirate_pistol",
 			PiratePistol::new);
+	
+	public static final RegistryObject<Item> PRIMITIVEREVOLVER = regAdd("primitive_revolver",
+			PrimitiveRevolver::new);
 	
 	public static final RegistryObject<Item> PIRATERIFLE = regAdd("pirate_rifle",
 			PirateRifle::new);
@@ -72,6 +76,7 @@ public class ItemRegistries {
 	public static void buildCreativeModeTab(BuildCreativeModeTabContentsEvent event) {
 		if(event.getTabKey() == MAIN){
 			event.accept(PIRATEPISTOL);
+			event.accept(PRIMITIVEREVOLVER);
 			event.accept(PIRATERIFLE);
 			event.accept(TRABUCO);
 			event.accept(MUSKET_BULLET);

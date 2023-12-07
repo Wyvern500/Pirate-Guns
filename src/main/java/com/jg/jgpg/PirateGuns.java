@@ -1,6 +1,7 @@
 package com.jg.jgpg;
 
 import com.jg.jgpg.capabilities.IPlayerCapability;
+import com.jg.jgpg.client.handler.ClientHandler;
 import com.jg.jgpg.client.handlers.ClientEventHandler;
 import com.jg.jgpg.config.Config;
 import com.jg.jgpg.network.AddCooldownMessage;
@@ -8,6 +9,8 @@ import com.jg.jgpg.network.BodyHitMessage;
 import com.jg.jgpg.network.CraftItemMessage;
 import com.jg.jgpg.network.LoadBulletMessage;
 import com.jg.jgpg.network.PlaySoundMessage;
+import com.jg.jgpg.network.SetBulletsMessage;
+import com.jg.jgpg.network.SetScopeMessage;
 import com.jg.jgpg.network.ShootMessage;
 import com.jg.jgpg.proxy.ClientProxy;
 import com.jg.jgpg.proxy.IProxy;
@@ -17,6 +20,8 @@ import com.jg.jgpg.registries.ContainerRegistries;
 import com.jg.jgpg.registries.EntityRegistries;
 import com.jg.jgpg.registries.ItemRegistries;
 import com.jg.jgpg.registries.SoundRegistries;
+import com.jg.jgpg.utils.LogUtils;
+import com.jg.jgpg.utils.NBTUtils;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
@@ -95,6 +100,12 @@ public class PirateGuns {
 		channel.registerMessage(packetsRegistered++, CraftItemMessage.class, 
 				CraftItemMessage::encode, CraftItemMessage::decode, 
 				CraftItemMessage::handle);
+		channel.registerMessage(packetsRegistered++, SetBulletsMessage.class, 
+				SetBulletsMessage::encode, SetBulletsMessage::decode, 
+				SetBulletsMessage::handle);
+		channel.registerMessage(packetsRegistered++, SetScopeMessage.class, 
+				SetScopeMessage::encode, SetScopeMessage::decode, 
+				SetScopeMessage::handle);
 	}
 	
 	private void registerCapabilites(RegisterCapabilitiesEvent e) {
@@ -102,7 +113,11 @@ public class PirateGuns {
 	}
 	
 	private void doClientStuff(final FMLClientSetupEvent event) {
-		ClientEventHandler.setup();
+		event.enqueueWork(() ->
+		{
+			ClientEventHandler.setup();
+			ClientHandler.registerItemProperties();
+		});
 	}
 	
 }

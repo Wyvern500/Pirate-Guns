@@ -12,6 +12,8 @@ public class Keyframe implements Comparable<Keyframe> {
 	Map<JgModelPart, KeyframeTransformData> traslations;
 	Map<JgModelPart, KeyframeTransformData> rotations;
 	int tick;
+	boolean isRepetitive;
+	boolean isShadow;
 	
 	public Keyframe(int tick) {
 		traslations = new HashMap<JgModelPart, KeyframeTransformData>();
@@ -82,12 +84,31 @@ public class Keyframe implements Comparable<Keyframe> {
 		return rotations;
 	}
 	
-	public void setTick(int tick) {
+	public Keyframe setTick(int tick) {
 		this.tick = tick;
+		return this;
 	}
 	
 	public int getTick() {
 		return tick;
+	}
+
+	public boolean isRepetitive() {
+		return isRepetitive;
+	}
+
+	public Keyframe setRepetitive(boolean isRepetitive) {
+		this.isRepetitive = isRepetitive;
+		return this;
+	}
+	
+	public boolean isShadow() {
+		return isShadow;
+	}
+
+	public Keyframe setShadow(boolean isShadow) {
+		this.isShadow = isShadow;
+		return this;
 	}
 
 	@Override

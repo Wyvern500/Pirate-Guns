@@ -21,13 +21,14 @@ public class ServerProxy implements IProxy {
 
 	@Override
 	public void registerForgeEventListeners(IEventBus bus) {
-		bus.addListener(this::attachCapabilities);
-		bus.addListener(this::onPlayerClone);
+		//bus.addListener(this::attachCapabilities);
+		//bus.addListener(this::onPlayerClone);
 	}
 	
 	// Capabilites
 	
-	private void attachCapabilities(AttachCapabilitiesEvent<Entity> e) {
+	
+	/*private void attachCapabilities(AttachCapabilitiesEvent<Entity> e) {
 		if (e.getObject() instanceof Player) {
 			PlayerCapabilityProvider provider = new PlayerCapabilityProvider();
 
@@ -47,7 +48,7 @@ public class ServerProxy implements IProxy {
 
 			old.invalidateCaps();
 		}
-	}
+	}*/
 
 	@Override
 	public Player getPlayerFromContext(Context context) {
