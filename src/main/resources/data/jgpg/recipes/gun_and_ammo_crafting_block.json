@@ -1,0 +1,22 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+      "iwi",
+      "sws",
+      "s s"
+    ],
+    "key": {
+      "i": {
+        "item": "minecraft:iron_ingot"
+      },
+      "w": {
+        "tag": "minecraft:planks"
+      },
+      "s": {
+        "item": "minecraft:stick"
+      }
+    },
+    "result": {
+      "item": "jgpg:gun_and_ammo_crafting_block"
+    }
+  }
