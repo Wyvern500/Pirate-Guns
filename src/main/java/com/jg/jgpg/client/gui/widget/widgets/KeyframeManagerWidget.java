@@ -301,7 +301,6 @@ public class KeyframeManagerWidget extends JgAbstractWidget {
 			// Te quedaste haciendo que un copy paste funcionara
 			copiedTransformDatas.clear();
 			copiedTransformDatas.addAll(selectedTransformDatas);
-			LogUtils.log("KeyframeManagerWidget", "Ctrl + c: Tick: " + tickManager.getTick());
 		} else if(keys[GLFW.GLFW_KEY_LEFT_CONTROL] && keys[GLFW.GLFW_KEY_V]) {
 			if(!copiedTransformDatas.isEmpty()) {
 				// Check if it is empty
@@ -310,8 +309,6 @@ public class KeyframeManagerWidget extends JgAbstractWidget {
 				for (TransformData data : copiedTransformDatas) {
 					int offset = data.getKf().getTick() - anchorTick;
 					Keyframe kf = getKeyframeOnTick(targetTick + offset);
-					LogUtils.log("KeyframeManagerWidget", "TargetTick: " + targetTick + " anchorTick: " + 
-							anchorTick + " offset: " + offset + " targetTick + offset: " + (targetTick + offset));
 					if (kf != null) {
 						if (data.isRot()) {
 							kf.getRotations().put(data.getParent().getPart(),
