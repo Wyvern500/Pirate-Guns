@@ -6,6 +6,7 @@ import java.util.List;
 import com.jg.jgpg.PirateGuns;
 import com.jg.jgpg.client.handlers.AimHandler;
 import com.jg.jgpg.client.handlers.AnimationDataHandler;
+import com.jg.jgpg.client.handlers.BreathingHandler;
 import com.jg.jgpg.client.handlers.GunModelsHandler;
 import com.jg.jgpg.client.handlers.HitmarkerHandler;
 import com.jg.jgpg.client.handlers.ShootHandler;
@@ -33,6 +34,7 @@ public class ClientHandler {
 	AnimationDataHandler animationDataHandler;
 	AimHandler aim;
 	ShootHandler shoot;
+	BreathingHandler breathing;
 	HitmarkerHandler hitmarker;
 	SprintHandler sprint;
 	JgPlayerRenderer playerRenderer;
@@ -52,6 +54,7 @@ public class ClientHandler {
 		aim = new AimHandler(this);
 		shoot = new ShootHandler(this);
 		sprint = new SprintHandler(this);
+		breathing = new BreathingHandler(this);
 		hitmarker = new HitmarkerHandler();
 		parts = new ArrayList<>();
 		prevId = "";
@@ -89,6 +92,7 @@ public class ClientHandler {
 			aim.tick(player);
 			model.tick();
 			hitmarker.tick();
+			breathing.tick(player);
 			sprint.tick(player);
 		} else {
 			AbstractGunModel model = GunModelsHandler.get(ForgeRegistries.ITEMS.getKey(stack.getItem())
@@ -164,8 +168,12 @@ public class ClientHandler {
 		return hitmarker;
 	}
 	
-	public ShootHandler getShoothandler() {
+	public ShootHandler getShootHandler() {
 		return shoot;
+	}
+	
+	public BreathingHandler getBreatingHandler() {
+		return breathing;
 	}
 	
 	public boolean shouldRenderDefault() {

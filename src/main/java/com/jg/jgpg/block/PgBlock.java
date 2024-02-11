@@ -7,7 +7,5 @@ public class PgBlock extends Block {
 	public PgBlock(Properties p_49795_) {
 		super(p_49795_);
 	}
-
-	
 	
 }

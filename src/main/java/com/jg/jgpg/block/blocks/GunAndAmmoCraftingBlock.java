@@ -84,5 +84,4 @@ public class GunAndAmmoCraftingBlock extends PgBlock {
 		}, CONTAINER_TITLE);
 	}
 	
-	
 }

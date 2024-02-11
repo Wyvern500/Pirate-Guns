@@ -290,9 +290,10 @@ public class JgHumanoidModel<T extends LivingEntity> extends AgeableListModel<T>
       
       Utils.handleRightArmPose(Minecraft.getInstance().player, this, rightArm, rightArmPose);
       
-      client.getModel().handleArmPose(rightArmPose, Minecraft.getInstance()
-    		  .player.getItemInHand(InteractionHand.MAIN_HAND), this, HumanoidArm.RIGHT);
-      
+      if(client.getModel() != null) {
+	      client.getModel().handleArmPose(rightArmPose, Minecraft.getInstance()
+	    		  .player.getItemInHand(InteractionHand.MAIN_HAND), this, HumanoidArm.RIGHT);
+      }
    }
 
    private void poseLeftArm(T p_102879_) {
@@ -336,9 +337,11 @@ public class JgHumanoidModel<T extends LivingEntity> extends AgeableListModel<T>
       }
       
       Utils.handleLeftArmPose(Minecraft.getInstance().player, this, leftArm, leftArmPose);
-
-      client.getModel().handleArmPose(leftArmPose, Minecraft.getInstance()
-    		  .player.getItemInHand(InteractionHand.MAIN_HAND), this, HumanoidArm.LEFT);
+      
+      if(client.getModel() != null) {
+	      client.getModel().handleArmPose(leftArmPose, Minecraft.getInstance()
+	    		  .player.getItemInHand(InteractionHand.MAIN_HAND), this, HumanoidArm.LEFT);
+      }
    }
 
    protected void setupAttackAnimation(T p_102858_, float p_102859_) {

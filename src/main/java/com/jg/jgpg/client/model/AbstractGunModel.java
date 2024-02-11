@@ -34,9 +34,9 @@ public abstract class AbstractGunModel extends AbstractJgModel {
 		Easing in = EasingHandler.INSTANCE.getEasing(inEasing);
 		Easing out = EasingHandler.INSTANCE.getEasing(outEasing);
 
-		float p = (1 - client.getShoothandler().getProgress(stack.getItem()));
+		float p = (1 - client.getShootHandler().getProgress(stack.getItem()));
 		if (p > anchor) {
-			p = client.getShoothandler().getProgress(stack.getItem());
+			p = client.getShootHandler().getProgress(stack.getItem());
 			return out.get(p / 1);
 		}
 		return in.get(p / anchor);

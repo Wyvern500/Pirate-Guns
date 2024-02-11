@@ -3,6 +3,7 @@ package com.jg.jgpg.client.render.renderers;
 import com.jg.jgpg.client.handler.ClientHandler;
 import com.jg.jgpg.client.model.player.JgHumanoidArmorModel;
 import com.jg.jgpg.client.model.player.JgHumanoidModel;
+import com.jg.jgpg.client.model.player.JgHumanoidModel.ArmPose;
 import com.jg.jgpg.client.model.player.JgPlayerModel;
 import com.jg.jgpg.client.model.player.layers.JgArrowLayer;
 import com.jg.jgpg.client.model.player.layers.JgBeeStingerLayer;
@@ -110,6 +111,9 @@ public class JgPlayerRenderer extends JgAbstractPlayerRenderer<AbstractClientPla
 	private static JgHumanoidModel.ArmPose getArmPose(AbstractClientPlayer p_117795_, 
 			InteractionHand p_117796_) {
 		ItemStack stack = p_117795_.getItemInHand(p_117796_);
+		if(JgPlayerRenderer.client.getModel() == null) {
+			return ArmPose.SPYGLASS;
+		}
 		return JgPlayerRenderer.client.getModel().getArmPose(stack);
 		/*if (itemstack.isEmpty()) {
 			return HumanoidModel.ArmPose.CROSSBOW_HOLD;
