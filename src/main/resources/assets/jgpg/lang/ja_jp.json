@@ -1,0 +1,18 @@
+{
+    "item.jgpg.pirate_pistol": "海賊ピストル",
+    "item.jgpg.pirate_rifle": "海賊ライフル",
+    "item.jgpg.primitive_revolver": "原始リボルバー",
+    "item.jgpg.trabuco": "トラブコ",
+    "item.jgpg.musket_bullet": "マスケット弾",
+    "item.jgpg.trabuco_bullet": "トラブコ弾",
+    "block.jgpg.gun_crafting_station_block": "銃製作ステーションブロック",
+    "key.jgpg.reload": "リロード",
+    "key.jgpg.look": "見る",
+    "tabs.jgpg.allstuff": "海賊銃器",
+    "com.jgpg.container.gun_and_ammo_crafting_menu": "銃と弾薬テーブル",
+    "com.jgpg.translationStep": "翻訳ステップ：",
+    "com.jgpg.rotationStep": "回転ステップ：",
+    "gui.jgpg.gun_crafting_station_menu": "銃製作ステーション",
+    "crafting_station.jgpg.gun_tab": "銃タブ",
+    "crafting_station.jgpg.ammo_tab": "弾薬タブ"
+}

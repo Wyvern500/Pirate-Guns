@@ -1,0 +1,18 @@
+{
+    "item.jgpg.pirate_pistol": "Пиратский пистолет",
+    "item.jgpg.pirate_rifle": "Пиратская винтовка",
+    "item.jgpg.primitive_revolver": "Примитивный револьвер",
+    "item.jgpg.trabuco": "Трабуко",
+    "item.jgpg.musket_bullet": "Пуля для мушкета",
+    "item.jgpg.trabuco_bullet": "Пуля для трабуко",
+    "block.jgpg.gun_crafting_station_block": "Блок станции изготовления огнестрельного оружия",
+    "key.jgpg.reload": "Перезарядить",
+    "key.jgpg.look": "Посмотреть",
+    "tabs.jgpg.allstuff": "Пиратское оружие",
+    "com.jgpg.container.gun_and_ammo_crafting_menu": "Стол для изготовления огнестрельного оружия и боеприпасов",
+    "com.jgpg.translationStep": "Шаг перевода: ",
+    "com.jgpg.rotationStep": "Шаг вращения: ",
+    "gui.jgpg.gun_crafting_station_menu": "Станция для изготовления огнестрельного оружия",
+    "crafting_station.jgpg.gun_tab": "Вкладка оружия",
+    "crafting_station.jgpg.ammo_tab": "Вкладка боеприпасов"
+}

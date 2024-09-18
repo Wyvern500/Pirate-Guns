@@ -1,0 +1,60 @@
+{
+	"credit": "Made with Blockbench",
+	"texture_size": [32, 32],
+	"textures": {
+		"0": "jgpg:item/heavy_hand_cannon",
+		"particle": "jgpg:item/heavy_hand_cannon"
+	},
+	"elements": [
+		{
+			"from": [7, 2, 11],
+			"to": [9, 4, 13],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 2, 17]},
+			"faces": {
+				"north": {"uv": [9, 1, 10, 2], "texture": "#0"},
+				"east": {"uv": [8, 1, 9, 2], "texture": "#0"},
+				"south": {"uv": [11, 1, 12, 2], "texture": "#0"},
+				"west": {"uv": [10, 1, 11, 2], "texture": "#0"},
+				"up": {"uv": [10, 1, 9, 0], "texture": "#0"},
+				"down": {"uv": [11, 0, 10, 1], "texture": "#0"}
+			}
+		}
+	],
+	"display": {
+		"thirdperson_righthand": {
+			"translation": [0, 5.5, -4.25]
+		},
+		"thirdperson_lefthand": {
+			"translation": [0, 5.5, -4.25]
+		},
+		"firstperson_righthand": {
+			"translation": [-1.25, 7.75, -1.25]
+		},
+		"firstperson_lefthand": {
+			"translation": [-1.25, 7.75, -1.25]
+		},
+		"ground": {
+			"translation": [0, 5.5, -4.5]
+		},
+		"gui": {
+			"rotation": [29, 29.75, 0],
+			"translation": [-5.75, 18.5, 0],
+			"scale": [3, 3, 3]
+		},
+		"head": {
+			"translation": [-1.25, 7.75, -1.25]
+		},
+		"fixed": {
+			"translation": [0, 15.75, -13.75],
+			"scale": [3, 3, 3]
+		}
+	},
+	"groups": [
+		{
+			"name": "cannon_ball",
+			"origin": [8, 8, 8],
+			"color": 0,
+			"children": [0]
+		}
+	]
+}

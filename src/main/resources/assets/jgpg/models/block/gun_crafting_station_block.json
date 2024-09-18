@@ -1,0 +1,13 @@
+{
+	"parent": "minecraft:block/cube",
+	"textures": {
+	  "particle": "jgpg:block/gun_table_front",
+	  "north": "jgpg:block/gun_table_front",
+	  "south": "jgpg:block/gun_table_side",
+	  "east": "jgpg:block/gun_table_side",
+	  "west": "jgpg:block/gun_table_front",
+	  "up": "jgpg:block/crafting_matrix_3",
+	  "down": "jgpg:block/oak_planks"
+	}
+  }
+  

@@ -1,0 +1,18 @@
+{
+    "item.jgpg.pirate_pistol": "海盗手枪",
+    "item.jgpg.pirate_rifle": "海盗步枪",
+    "item.jgpg.primitive_revolver": "原始左轮手枪",
+    "item.jgpg.trabuco": "特拉布科",
+    "item.jgpg.musket_bullet": "火铳子弹",
+    "item.jgpg.trabuco_bullet": "特拉布科子弹",
+    "block.jgpg.gun_crafting_station_block": "枪械制作工作台方块",
+    "key.jgpg.reload": "重新装填",
+    "key.jgpg.look": "观察",
+    "tabs.jgpg.allstuff": "海盗枪械",
+    "com.jgpg.container.gun_and_ammo_crafting_menu": "枪械和弹药工作台",
+    "com.jgpg.translationStep": "翻译步骤：",
+    "com.jgpg.rotationStep": "旋转步骤：",
+    "gui.jgpg.gun_crafting_station_menu": "枪械制作工作台",
+    "crafting_station.jgpg.gun_tab": "枪械选项卡",
+    "crafting_station.jgpg.ammo_tab": "弹药选项卡"
+}

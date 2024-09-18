@@ -1,0 +1,18 @@
+{
+    "item.jgpg.pirate_pistol": "해적 권총",
+    "item.jgpg.pirate_rifle": "해적 소총",
+    "item.jgpg.primitive_revolver": "원시 리볼버",
+    "item.jgpg.trabuco": "트라부코",
+    "item.jgpg.musket_bullet": "머스켓 총알",
+    "item.jgpg.trabuco_bullet": "트라부코 총알",
+    "block.jgpg.gun_crafting_station_block": "총기 제작 대",
+    "key.jgpg.reload": "재장전",
+    "key.jgpg.look": "보기",
+    "tabs.jgpg.allstuff": "해적 총기",
+    "com.jgpg.container.gun_and_ammo_crafting_menu": "총기 및 탄약 제작 테이블",
+    "com.jgpg.translationStep": "번역 단계: ",
+    "com.jgpg.rotationStep": "회전 단계: ",
+    "gui.jgpg.gun_crafting_station_menu": "총기 제작 대",
+    "crafting_station.jgpg.gun_tab": "총기 탭",
+    "crafting_station.jgpg.ammo_tab": "탄약 탭"
+}
