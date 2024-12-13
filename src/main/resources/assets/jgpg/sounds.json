@@ -1,0 +1,242 @@
+{
+  "flintlock_pistol_shoot": {
+    "category": "neutral",
+    "subtitle": "flintlock_pistol_shoot",
+    "sounds": [
+      {
+        "name": "jgpg:neutral/guns/flintlock_pistol_shoot",
+        "stream": false
+      }
+    ]
+  },
+  "flintlock_rifle_shoot": {
+    "category": "neutral",
+    "subtitle": "flintlock_rifle_shoot",
+    "sounds": [
+      {
+        "name": "jgpg:neutral/guns/flintlock_rifle_shoot",
+        "stream": false
+      }
+    ]
+  },
+  "hammer_back": {
+    "category": "neutral",
+    "subtitle": "hammer_back",
+    "sounds": [
+      {
+        "name": "jgpg:neutral/guns/hammer_back",
+        "stream": false
+      }
+    ]
+  },
+  "multiple_bullets_hitting_metal": {
+    "category": "neutral",
+    "subtitle": "multiple_bullets_hitting_metal",
+    "sounds": [
+      {
+        "name": "jgpg:neutral/guns/multiple_bullets_hitting_metal",
+        "stream": false
+      }
+    ]
+  },
+  "small_bullet_hitting_metal": {
+    "category": "neutral",
+    "subtitle": "small_bullet_hitting_metal",
+    "sounds": [
+      {
+        "name": "jgpg:neutral/guns/small_ball_hitting_metal",
+        "stream": false
+      }
+    ]
+  },
+  "metalic_ding": {
+    "category": "neutral",
+    "subtitle": "metalic_ding",
+    "sounds": [
+      {
+        "name": "jgpg:neutral/guns/metalic_ding",
+        "stream": false
+      }
+    ]
+  },
+  "gunpowder_dust_1": {
+    "category": "neutral",
+    "subtitle": "gunpowder_dust_1",
+    "sounds": [
+      {
+        "name": "jgpg:neutral/guns/gunpowder_dust_1",
+        "stream": false
+      }
+    ]
+  },
+  "gunpowder_dust_2": {
+    "category": "neutral",
+    "subtitle": "gunpowder_dust_2",
+    "sounds": [
+      {
+        "name": "jgpg:neutral/guns/gunpowder_dust_2",
+        "stream": false
+      }
+    ]
+  },
+  "inserting_bullet": {
+    "category": "neutral",
+    "subtitle": "inserting_bullet",
+    "sounds": [
+      {
+        "name": "jgpg:neutral/guns/inserting_bullet",
+        "stream": false
+      }
+    ]
+  },
+  "gun_hit_sound": {
+    "category": "neutral",
+    "subtitle": "gun_hit_sound",
+    "sounds": [
+      {
+        "name": "jgpg:neutral/guns/gun_hit_sound",
+        "stream": false
+      }
+    ]
+  },
+  "gun_moving_sound": {
+    "category": "neutral",
+    "subtitle": "gun_moving_sound",
+    "sounds": [
+      {
+        "name": "jgpg:neutral/guns/gun_moving_sound",
+        "stream": false
+      }
+    ]
+  },
+  "gun_swing": {
+    "category": "neutral",
+    "subtitle": "gun_swing",
+    "sounds": [
+      {
+        "name": "jgpg:neutral/guns/swing2",
+        "stream": false
+      }
+    ]
+  },
+  "meleehit": {
+    "category": "neutral",
+    "subtitle": "meleehit",
+    "sounds": [
+      {
+        "name": "jgpg:neutral/guns/meleehit1",
+        "stream": false
+      }
+    ]
+  },
+  "metal_sliding": {
+    "category": "neutral",
+    "subtitle": "metal_sliding",
+    "sounds": [
+      {
+        "name": "jgpg:neutral/guns/metal_sliding",
+        "stream": false
+      }
+    ]
+  },
+  "revolver_single_spin": {
+    "category": "neutral",
+    "subtitle": "revolver_single_spin",
+    "sounds": [
+      {
+        "name": "jgpg:neutral/guns/revolver-single-spin",
+        "stream": false
+      }
+    ]
+  },
+  "remove_something_metalic": {
+    "category": "neutral",
+    "subtitle": "remove_something_metalic",
+    "sounds": [
+      {
+        "name": "jgpg:neutral/guns/remove_something_metalic",
+        "stream": false
+      }
+    ]
+  },
+  "remove_something_metalic_2": {
+    "category": "neutral",
+    "subtitle": "remove_something_metalic_2",
+    "sounds": [
+      {
+        "name": "jgpg:neutral/guns/remove_something_metalic_2",
+        "stream": false
+      }
+    ]
+  },
+  "hitting_gun": {
+    "category": "neutral",
+    "subtitle": "hitting_gun",
+    "sounds": [
+      {
+        "name": "jgpg:neutral/guns/hitting_gun",
+        "stream": false
+      }
+    ]
+  },
+  "short_rotate_whoosh": {
+    "category": "neutral",
+    "subtitle": "short_rotate_whoosh",
+    "sounds": [
+      {
+        "name": "jgpg:neutral/guns/short_rotate_whoosh",
+        "stream": false
+      }
+    ]
+  },
+  "swing_whoosh_3": {
+    "category": "neutral",
+    "subtitle": "swing_whoosh_3",
+    "sounds": [
+      {
+        "name": "jgpg:neutral/guns/swing_whoosh_3",
+        "stream": false
+      }
+    ]
+  },
+  "cannon_fire": {
+    "category": "neutral",
+    "subtitle": "cannon-fire",
+    "sounds": [
+      {
+        "name": "jgpg:neutral/guns/cannon-fire",
+        "stream": false
+      }
+    ]
+  },
+  "swing": {
+    "category": "neutral",
+    "subtitle": "swing",
+    "sounds": [
+      {
+        "name": "jgpg:neutral/guns/swing",
+        "stream": false
+      }
+    ]
+  },
+  "craft_sound": {
+    "category": "neutral",
+    "subtitle": "craft_sound",
+    "sounds": [
+      {
+        "name": "jgpg:neutral/guns/craft_sound",
+        "stream": false
+      }
+    ]
+  },
+  "hitmarker": {
+    "category": "neutral",
+    "subtitle": "hitmarker",
+    "sounds": [
+      {
+        "name": "jgpg:neutral/guns/hitmarker",
+        "stream": false
+      }
+    ]
+  }
+}
