@@ -432,7 +432,8 @@ public class ClientEventHandler {
 	// Input handling
 	
 	private static void handleKeyboard(InputEvent.Key e) {
-		
+		if(e.getKey() < 0 || e.getKey() >= keys.length) return;
+
 		if(e.getAction() == GLFW.GLFW_PRESS) {
 			LocalPlayer player = mc.player;
 			
